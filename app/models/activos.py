@@ -11,4 +11,5 @@ class Activos(SQLModel, table=True):
     direccion_ip: Optional[str] = Field(default=None, max_length=45)
     tipo_activo: Optional[str] = Field(default=None, max_length=100)
     propietario: Optional[str] = Field(default=None, max_length=200)
+    id_sede: Optional[int] = Field(default=None, foreign_key="cat_Sedes.id_sede")
     incidentes_links: List["Incidentes_Activos"] = Relationship(back_populates="activo")

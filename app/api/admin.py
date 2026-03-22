@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import Connection  # <--- CAMBIO: Usamos Connection, no Session
 
-from app.crud import catalogos as crud  # Asegúrate de importar el CRUD correcto
+from app.crud import categorias as crud  # Asegúrate de importar el CRUD correcto
 from app import schemas
 from app.core.database import get_session  # <--- CAMBIO: La nueva dependencia
 
@@ -24,8 +24,8 @@ templates = Jinja2Templates(directory="app/templates")
 
 # --- RUTAS ---
 
-@router.get("/catalogos", name="mostrar_admin_catalogos")
-async def mostrar_admin_catalogos(
+@router.get("/categorias", name="mostrar_admin_categorias")
+async def mostrar_admin_categorias(
         request: Request,
         conn: Connection = Depends(get_session)  # <--- CAMBIO: conn
 ):
@@ -35,7 +35,7 @@ async def mostrar_admin_catalogos(
         "prioridades": crud.get_prioridades(conn),
         "estados": crud.get_estados(conn)
     }
-    return templates.TemplateResponse("catalogos/catalogos_admin.html", context)
+    return templates.TemplateResponse("categorias/categorias_admin.html", context)
 
 
 # --- CREAR TIPO ---
@@ -46,7 +46,7 @@ async def mostrar_formulario_crear_tipo(request: Request):
         "request": request,
         "tipo": None
     }
-    return templates.TemplateResponse("catalogos/tipo_form.html", context)
+    return templates.TemplateResponse("categorias/tipo_form.html", context)
 
 
 @router.post("/tipos/crear", name="procesar_crear_tipo")
@@ -63,7 +63,7 @@ async def procesar_crear_tipo(
     crud.crear_tipo_incidente(conn=conn, tipo=tipo_data)
 
     return RedirectResponse(
-        url=router.url_path_for("mostrar_admin_catalogos"),
+        url=router.url_path_for("mostrar_admin_categorias"),
         status_code=303
     )
 
@@ -83,7 +83,7 @@ async def mostrar_formulario_editar_tipo(
         "request": request,
         "tipo": tipo_encontrado
     }
-    return templates.TemplateResponse("catalogos/tipo_form.html", context)
+    return templates.TemplateResponse("categorias/tipo_form.html", context)
 
 
 @router.post("/tipos/editar/{tipo_id}", name="procesar_editar_tipo")
@@ -108,7 +108,7 @@ async def procesar_editar_tipo(
     )
 
     return RedirectResponse(
-        url=router.url_path_for("mostrar_admin_catalogos"),
+        url=router.url_path_for("mostrar_admin_categorias"),
         status_code=303
     )
 
@@ -128,6 +128,6 @@ async def procesar_eliminar_tipo(
     crud.eliminar_tipo_incidente(conn=conn, tipo_id=tipo_id)
 
     return RedirectResponse(
-        url=router.url_path_for("mostrar_admin_catalogos"),
+        url=router.url_path_for("mostrar_admin_categorias"),
         status_code=303
     )

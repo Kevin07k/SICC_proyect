@@ -11,7 +11,7 @@ from app import schemas
 
 def get_incidentes(conn: Connection, skip: int = 0, limit: int = 100):
     query = text("""
-                 SELECT i.*,
+                 SELECT i.id_incidente, i.titulo, i.fecha_creacion, i.fecha_cierre,
                         t.nombre          AS nombre_tipo,
                         p.nivel           AS nombre_prioridad,
                         e.nombre          AS nombre_estado,
@@ -39,7 +39,7 @@ def get_incidente(conn: Connection, incidente_id: int):
     Obtiene un incidente por ID, incluyendo los nombres de los catálogos.
     """
     query = text("""
-                 SELECT i.*,
+                 SELECT i.id_incidente, i.titulo, i.descripcion_detallada, i.fecha_creacion, i.fecha_cierre, i.id_tipo, i.id_prioridad, i.id_estado, i.id_usuario_asignado,
                         t.nombre          AS nombre_tipo,
                         p.nivel           AS nombre_prioridad,
                         e.nombre          AS nombre_estado,

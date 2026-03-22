@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if sede %}Editar Sede{% else %}Crear Sede{% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if sede %}Editar Sede: {{ sede.nombre_sede }}{% else %}Registrar Nueva Sede{% endif %}
+{% endblock %}
+
+{% block content %}
+    <form action="{% if sede %}{{ url_for('procesar_editar_sede', sede_id=sede.id_sede) }}{% else %}{{ url_for('procesar_crear_sede') }}{% endif %}"
+          method="POST"
+          class="space-y-6 max-w-lg mx-auto">
+
+        <div>
+            <label for="nombre_sede" class="block text-sm font-medium text-gray-700">
+                Nombre de Sede
+            </label>
+            <div class="mt-1">
+                <input type="text" name="nombre_sede" id="nombre_sede"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                       placeholder="ej: Sucursal Norte - Oruro" value="{{ sede.nombre_sede or '' }}" required>
+            </div>
+        </div>
+
+        <div>
+            <label for="nivel_criticidad" class="block text-sm font-medium text-gray-700">
+                Nivel de Criticidad del Entorno
+            </label>
+            <div class="mt-1">
+                <select name="nivel_criticidad" id="nivel_criticidad"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" required>
+                    <option value="" disabled {% if not sede %}selected{% endif %}>-- Seleccione nivel --</option>
+                    <option value="Bajo" {% if sede and 'baj' in sede.nivel_criticidad|lower %}selected{% endif %}>Bajo (Administrativo - Sin Datos Sensibles)</option>
+                    <option value="Medio" {% if sede and 'medi' in sede.nivel_criticidad|lower %}selected{% endif %}>Medio (Operaciones Generales)</option>
+                    <option value="Alto" {% if sede and 'alt' in sede.nivel_criticidad|lower %}selected{% endif %}>Alto (Data Center / Almacena PII Crítico)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t mt-6">
+            <a href="{{ url_for('mostrar_lista_de_sedes') }}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+{% endblock %}

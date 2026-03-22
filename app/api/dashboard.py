@@ -1,7 +1,7 @@
 # router/dashboard.py
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import Connection  # Usamos Connection
+from sqlalchemy import Connection, text  # Usamos Connection y text
 
 from app.crud import dashboard as crud  # Importamos el nuevo CRUD
 from app.core.database import get_session  # La nueva dependencia
@@ -25,3 +25,19 @@ async def mostrar_dashboard(
         "datos_prioridad": datos_prioridad
     }
     return templates.TemplateResponse("index.html", context)
+
+# ===================================
+# SPRINT 5: VISTAS ESTADÍSTICAS
+# ===================================
+
+@router.get("/vistas/criticos", name="dashboard_incidentes_criticos")
+async def dashboard_incidentes_criticos(conn: Connection = Depends(get_session)):
+    query = text("SELECT * FROM vw_Incidentes_Criticos_Abiertos")
+    result = conn.execute(query).mappings().fetchall()
+    return {"data": [dict(r) for r in result]}
+
+@router.get("/vistas/top-activos", name="dashboard_top_activos")
+async def dashboard_top_activos(conn: Connection = Depends(get_session)):
+    query = text("SELECT * FROM vw_Top_Activos_Atacados")
+    result = conn.execute(query).mappings().fetchall()
+    return {"data": [dict(r) for r in result]}

@@ -8,7 +8,12 @@ from app import schemas
 # ==========================================
 def get_activo(conn: Connection, activo_id: int):
     # Asumimos que la PK es id_activo
-    query = text("SELECT * FROM Activos WHERE id_activo = :id")
+    query = text("""
+        SELECT a.id_activo, a.hostname, a.direccion_ip, a.tipo_activo, a.propietario, a.id_sede, s.nombre_sede 
+        FROM Activos a
+        LEFT JOIN cat_Sedes s ON a.id_sede = s.id_sede
+        WHERE a.id_activo = :id
+    """)
     result = conn.execute(query, {"id": activo_id})
     return result.mappings().first()
 
@@ -18,9 +23,10 @@ def get_activo(conn: Connection, activo_id: int):
 # ==========================================
 def get_activos(conn: Connection, skip: int = 0, limit: int = 100):
     query = text("""
-                 SELECT *
-                 FROM Activos
-                 ORDER BY hostname ASC
+                 SELECT a.id_activo, a.hostname, a.direccion_ip, a.tipo_activo, a.propietario, a.id_sede, s.nombre_sede
+                 FROM Activos a
+                 LEFT JOIN cat_Sedes s ON a.id_sede = s.id_sede
+                 ORDER BY a.hostname ASC
                  OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY
                  """)
     result = conn.execute(query, {"skip": skip, "limit": limit})
@@ -33,8 +39,8 @@ def get_activos(conn: Connection, skip: int = 0, limit: int = 100):
 def crear_activo(conn: Connection, activo: schemas.ActivoCreate):
     # CORRECCIÓN: Usamos 'tipo_activo' en la columna de la BD
     query = text("""
-                 INSERT INTO Activos (hostname, direccion_ip, tipo_activo, propietario)
-                 VALUES (:hostname, :direccion_ip, :tipo_activo, :propietario)
+                 INSERT INTO Activos (hostname, direccion_ip, tipo_activo, propietario, id_sede)
+                 VALUES (:hostname, :direccion_ip, :tipo_activo, :propietario, :id_sede)
                  """)
 
     try:
@@ -73,7 +79,8 @@ def actualizar_activo(
         # Nota: Usamos getattr para leer de la BD por si acaso
         "tipo_activo": update_data.get("tipo_activo", getattr(existing_asset, 'tipo_activo', None)),
 
-        "propietario": update_data.get("propietario", existing_asset.propietario)
+        "propietario": update_data.get("propietario", existing_asset.propietario),
+        "id_sede": update_data.get("id_sede", existing_asset.id_sede)
     }
 
     # CORRECCIÓN: SET tipo_activo = :tipo_activo
@@ -82,7 +89,8 @@ def actualizar_activo(
                  SET hostname     = :hostname,
                      direccion_ip = :direccion_ip,
                      tipo_activo  = :tipo_activo,
-                     propietario  = :propietario
+                     propietario  = :propietario,
+                     id_sede      = :id_sede
                  WHERE id_activo = :id
                  """)
 
@@ -101,6 +109,16 @@ def actualizar_activo(
 def eliminar_activo(conn: Connection, activo_id: int):
     if not get_activo(conn, activo_id):
         raise HTTPException(status_code=404, detail="Activo no encontrado")
+
+    # Optimización: Usar EXISTS en lugar de IN o dejar que falle la FK para verificar incidentes
+    check_query = text("""
+        SELECT 1 
+        WHERE EXISTS (
+            SELECT 1 FROM Incidentes_Activos WHERE id_activo = :id
+        )
+    """)
+    if conn.execute(check_query, {"id": activo_id}).scalar():
+        raise HTTPException(status_code=400, detail="No se puede eliminar: El activo está vinculado a incidentes (Verificado con EXISTS).")
 
     query = text("DELETE FROM Activos WHERE id_activo = :id")
 

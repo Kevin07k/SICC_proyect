@@ -4,14 +4,14 @@
 # Incidentes CRUD
 # ===================================
 
-from fastapi import APIRouter, Request, Depends, Form
+from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import Connection  # <--- CAMBIO: Connection
+from sqlalchemy import Connection, text  # <--- CAMBIO: Connection, text
 from typing import Optional
 
 from app.crud import incidentes as crud_incidentes  # Asegúrate de importar bien tus CRUDS
-from app.crud import catalogos as crud_catalogos
+from app.crud import categorias as crud_categorias
 from app.crud import usuarios as crud_usuarios
 from app.crud import activos as crud_activos
 from app.crud import bitacora as crud_bitacora
@@ -53,10 +53,11 @@ async def mostrar_formulario_crear_incidente(
     context = {
         "request": request,
         "incidente": None,
-        "tipos": crud_catalogos.get_tipos_incidente(conn),
-        "prioridades": crud_catalogos.get_prioridades(conn),
-        "estados": crud_catalogos.get_estados(conn),
-        "usuarios": crud_usuarios.get_usuarios(conn)
+        "tipos": crud_categorias.get_tipos_incidente(conn),
+        "prioridades": crud_categorias.get_prioridades(conn),
+        "estados": crud_categorias.get_estados(conn),
+        "usuarios": crud_usuarios.get_usuarios(conn),
+        "activos": crud_activos.get_activos(conn)
     }
 
     return templates.TemplateResponse("incidentes/incidente_form.html", context)
@@ -71,18 +72,34 @@ async def procesar_crear_incidente(
         id_tipo: int = Form(...),
         id_prioridad: int = Form(...),
         id_estado: int = Form(...),
-        id_usuario_asignado: Optional[int] = Form(None)
+        id_usuario_asignado: Optional[int] = Form(None),
+        id_activo: Optional[int] = Form(None)
 ):
-    incidente_data = schemas.IncidenteCreate(
-        titulo=titulo,
-        descripcion_detallada=descripcion_detallada,
-        id_tipo=id_tipo,
-        id_prioridad=id_prioridad,
-        id_estado=id_estado,
-        id_usuario_asignado=id_usuario_asignado
-    )
-    # Llamamos al CRUD pasando 'conn'
-    crud_incidentes.crear_incidente(conn=conn, incidente=incidente_data)
+    # Usamos RAW SQL para llamar al Stored Procedure
+    query = text("""
+        EXEC sp_RegistrarIncidenteCompleto 
+            @titulo = :titulo,
+            @descripcion_detallada = :descripcion,
+            @id_tipo = :tipo,
+            @id_prioridad = :prioridad,
+            @id_estado = :estado,
+            @id_usuario_asignado = :usuario,
+            @id_activo = :activo
+    """)
+    try:
+        conn.execute(query, {
+            "titulo": titulo,
+            "descripcion": descripcion_detallada,
+            "tipo": id_tipo,
+            "prioridad": id_prioridad,
+            "estado": id_estado,
+            "usuario": id_usuario_asignado,
+            "activo": id_activo
+        })
+        conn.commit()  # Aseguramos el entorno SQLAlchemy aunque el SP tenga COMMIT TRAN
+    except Exception as e:
+        print(f"Error ejecutando SP transaccional: {e}")
+        conn.rollback()
 
     return RedirectResponse(
         url=router.url_path_for("mostrar_lista_de_incidentes"),
@@ -101,9 +118,9 @@ async def mostrar_formulario_editar_incidente(
     context = {
         "request": request,
         "incidente": crud_incidentes.get_incidente(conn, incidente_id),
-        "tipos": crud_catalogos.get_tipos_incidente(conn),
-        "prioridades": crud_catalogos.get_prioridades(conn),
-        "estados": crud_catalogos.get_estados(conn),
+        "tipos": crud_categorias.get_tipos_incidente(conn),
+        "prioridades": crud_categorias.get_prioridades(conn),
+        "estados": crud_categorias.get_estados(conn),
         "usuarios": crud_usuarios.get_usuarios(conn)
     }
     return templates.TemplateResponse("incidentes/incidente_form.html", context)
@@ -180,13 +197,14 @@ async def mostrar_detalle_incidente(
     # Usamos la función del CRUD que carga todos los detalles
     incidente = crud_incidentes.get_incidente_con_detalles(conn, incidente_id)
 
-    # También necesitamos la lista de TODOS los activos (para el menú de vincular)
-    activos_para_vincular = crud_activos.get_activos(conn)
+    # También necesitamos la lista de TODOS los usuarios
+    usuarios_para_vincular = crud_usuarios.get_usuarios(conn)
 
     context = {
         "request": request,
         "incidente": incidente,
-        "activos_para_vincular": activos_para_vincular
+        "activos_para_vincular": activos_para_vincular,
+        "usuarios_para_vincular": usuarios_para_vincular
     }
     return templates.TemplateResponse("incidentes/incidente_detalle.html", context)
 
@@ -257,6 +275,83 @@ async def procesar_desvincular_activo(
     )
 
     # Redirigimos al mismo detalle para ver el cambio
+    return RedirectResponse(
+        url=request.url_for("mostrar_detalle_incidente", incidente_id=incidente_id),
+        status_code=303
+    )
+
+# ===================================
+# SPRINT 1: VISTA DE AUDITORIA GERENCIAL
+# ===================================
+
+@router.get("/auditoria/sedes", name="auditoria_incidentes_sedes")
+async def auditoria_incidentes_sedes(
+        conn: Connection = Depends(get_session)
+):
+    """
+    Endpoint gerencial que consulta EXCLUSIVAMENTE la vista vw_Auditoria_Incidentes_Sede.
+    Esto proporciona seguridad lógica al no exponer las tablas base directamente.
+    """
+    query = text("SELECT * FROM vw_Auditoria_Incidentes_Sede")
+    result = conn.execute(query).mappings().fetchall()
+    
+    # Retornamos los datos directamente como JSON para consumo de frontend/gerencial
+    return {"data": [dict(row) for row in result]}
+
+# ===================================
+# SPRINT 5: STORED PROCEDURES
+# ===================================
+
+@router.post("/detalle/{incidente_id}/cerrar", name="procesar_cerrar_incidente")
+async def procesar_cerrar_incidente(
+    request: Request,
+    incidente_id: int,
+    nota_cierre: str = Form("Incidente cerrado de forma automática por interfaz web."),
+    conn: Connection = Depends(get_session)
+):
+    query = text("""
+        EXEC sp_CerrarIncidente 
+            @id_incidente = :incidente_id, 
+            @id_usuario_cierre = 1,
+            @nota_cierre = :nota_cierre
+    """)
+    try:
+        conn.execute(query, {
+            "incidente_id": incidente_id,
+            "nota_cierre": nota_cierre
+        })
+        conn.commit() 
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+        
+    return RedirectResponse(
+        url=request.url_for("mostrar_detalle_incidente", incidente_id=incidente_id),
+        status_code=303
+    )
+
+@router.post("/detalle/{incidente_id}/asignar", name="procesar_asignar_analista")
+async def procesar_asignar_analista(
+    request: Request,
+    incidente_id: int,
+    id_usuario: int = Form(...),
+    conn: Connection = Depends(get_session)
+):
+    query = text("""
+        EXEC sp_AsignarAnalista 
+            @id_incidente = :incidente_id, 
+            @id_usuario = :id_usuario
+    """)
+    try:
+        conn.execute(query, {
+            "incidente_id": incidente_id,
+            "id_usuario": id_usuario
+        })
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+        
     return RedirectResponse(
         url=request.url_for("mostrar_detalle_incidente", incidente_id=incidente_id),
         status_code=303

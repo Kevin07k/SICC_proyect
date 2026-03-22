@@ -5,15 +5,26 @@
 {% block page_title %}Detalle del Incidente{% endblock %}
 
 {% block content %}
-<div class="mb-6">
+<div class="mb-6 flex justify-between items-center">
     <a href="{{ url_for('mostrar_lista_de_incidentes') }}"
-       class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-             class="w-4 h-4 mr-2">
+       class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 transition ease-in-out duration-150">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
         </svg>
         Volver al Listado
     </a>
+
+    {% if incidente.nombre_estado != 'Cerrado' %}
+    <form action="{{ url_for('procesar_cerrar_incidente', incidente_id=incidente.id_incidente) }}" method="POST" onsubmit="return confirm('¿Seguro de cerrar este incidente usando el Stored Procedure Transaccional?');">
+        <input type="hidden" name="nota_cierre" value="Incidente cerrado con la interfaz web usando Stored Procedure SP_CerrarIncidente">
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-red-700 focus:outline-none transition ease-in-out duration-150">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Finalizar (Cerrar) Incidente
+        </button>
+    </form>
+    {% else %}
+    <span class="px-4 py-2 bg-gray-200 text-gray-600 rounded-md font-semibold text-xs uppercase shadow-sm">INCIDENTE YA ESTÁ CERRADO</span>
+    {% endif %}
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -114,10 +125,21 @@
                     </div>
                 </div>
                 <div>
-                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wide">Asignado a</dt>
-                    <dd class="text-sm text-gray-900 mt-1 flex items-center">
-                        <span class="h-2 w-2 rounded-full bg-green-400 mr-2"></span>
-                        {{ incidente.nombre_usuario or 'Sin Asignar' }}
+                    <dt class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Asignado a</dt>
+                    <dd class="text-sm mt-1">
+                        <form action="{{ url_for('procesar_asignar_analista', incidente_id=incidente.id_incidente) }}" method="POST" class="flex items-center gap-2">
+                            <select name="id_usuario" class="block w-full max-w-xs rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white">
+                                <option value="" disabled {% if not incidente.id_usuario_asignado %}selected{% endif %}>-- Seleccionar Analista --</option>
+                                {% for u in usuarios_para_vincular %}
+                                <option value="{{ u.id_usuario }}" {% if u.id_usuario == incidente.id_usuario_asignado %}selected{% endif %}>
+                                    {{ u.nombre_completo }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded font-semibold shadow transition">
+                                Asignar SP
+                            </button>
+                        </form>
                     </dd>
                 </div>
             </div>

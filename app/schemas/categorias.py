@@ -15,3 +15,11 @@ class EstadoCreate(SQLModel):
 class TipoIncidenteUpdate(SQLModel):
     nombre: Optional[str] = None
     descripcion: Optional[str] = None
+
+class SedeCreate(SQLModel):
+    nombre_sede: str
+    nivel_criticidad: str
+
+class SedeUpdate(SQLModel):
+    nombre_sede: Optional[str] = None
+    nivel_criticidad: Optional[str] = None

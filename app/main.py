@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 # Importamos los routers desde tu carpeta 'router'
 # Nota: He quitado 'bitacora' asumiendo que su lógica está dentro de 'incidentes.py'
-from app.api import dashboard, incidentes, activos, usuarios, admin, bitacora
+from app.api import dashboard, incidentes, activos, usuarios, admin, bitacora, sedes
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,3 +33,4 @@ app.include_router(activos.router)
 app.include_router(usuarios.router)
 app.include_router(admin.router)
 app.include_router(bitacora.router)
+app.include_router(sedes.router)

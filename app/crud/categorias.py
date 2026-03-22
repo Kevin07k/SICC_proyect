@@ -26,6 +26,11 @@ def get_estados(conn: Connection):
     result = conn.execute(query)
     return result.mappings().all()
 
+def get_sedes(conn: Connection):
+    query = text("SELECT * FROM cat_Sedes ORDER BY nombre_sede ASC")
+    result = conn.execute(query)
+    return result.mappings().all()
+
 
 # ==========================================
 #           OBTENER UNO SOLO (BY ID)

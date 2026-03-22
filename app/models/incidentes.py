@@ -6,7 +6,7 @@ from sqlalchemy.dialects.mssql import DATETIME2
 from sqlalchemy.sql import func
 
 if TYPE_CHECKING:
-    from .catalogos import cat_Tipos_Incidente, cat_Prioridades, cat_Estados
+    from .categorias import cat_Tipos_Incidente, cat_Prioridades, cat_Estados
     from .usuarios import Usuarios
     from .activos import Activos
     from .bitacora import Bitacora_Investigacion
