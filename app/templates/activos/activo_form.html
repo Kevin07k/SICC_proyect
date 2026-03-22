@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if activo %}
+        Editar Activo
+    {% else %}
+        Crear Activo
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if activo %}
+        Editar Activo: {{ activo.hostname }}
+    {% else %}
+        Registrar Nuevo Activo
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+    <form action="{% if activo %}{{ url_for('procesar_editar_activo', activo_id=activo.id_activo) }}{% else %}{{ url_for('procesar_crear_activo') }}{% endif %}"
+          method="POST"
+          class="space-y-6 max-w-lg mx-auto">
+
+        <div>
+            <label for="hostname" class="block text-sm font-medium text-gray-700">
+                Hostname (Nombre del Equipo)
+            </label>
+            <div class="mt-1">
+                <input type="text"
+                       name="hostname"
+                       id="hostname"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                       placeholder="ej: SRV-WEB-01"
+                       value="{{ activo.hostname or '' }}"
+                       required>
+            </div>
+        </div>
+
+        <div>
+            <label for="direccion_ip" class="block text-sm font-medium text-gray-700">
+                Dirección IP
+            </label>
+            <div class="mt-1">
+                <input type="text"
+                       name="direccion_ip"
+                       id="direccion_ip"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                       placeholder="ej: 192.168.1.10"
+                       value="{{ activo.direccion_ip or '' }}">
+            </div>
+        </div>
+
+        <div>
+            <label for="tipo_activo" class="block text-sm font-medium text-gray-700">
+                Tipo de Activo
+            </label>
+            <div class="mt-1">
+                <input type="text"
+                       name="tipo_activo"
+                       id="tipo_activo"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                       placeholder="ej: Servidor, Laptop, Firewall"
+                       value="{{ activo.tipo_activo or '' }}">
+            </div>
+        </div>
+
+        <div>
+            <label for="propietario" class="block text-sm font-medium text-gray-700">
+                propietario (Departamento)
+            </label>
+            <div class="mt-1">
+                <input type="text"
+                       name="propietario"
+                       id="propietario"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                       placeholder="ej: Finanzas, TI, Marketing"
+                       value="{{ activo.propietario or '' }}">
+            </div>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t mt-6">
+            <a href="{{ url_for('mostrar_lista_de_activos') }}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Guardar Cambios
+            </button>
+        </div>
+
+    </form>
+
+{% endblock %}

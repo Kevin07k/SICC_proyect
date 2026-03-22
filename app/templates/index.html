@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Gestión SIEM{% endblock %}
+
+{% block page_title %}Dashboard de Seguridad{% endblock %}
+
+{% block content %}
+
+    <p class="mb-8 text-lg text-gray-700 leading-relaxed">
+        Bienvenido al sistema de gestión de incidentes. Aquí tienes un resumen del estado actual de la seguridad.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+
+        <div class="bg-blue-50 p-6 rounded-xl shadow-lg border border-blue-200">
+            <h3 class="text-2xl font-semibold text-blue-800 mb-6 border-b pb-4">Incidentes por Prioridad</h3>
+
+            <div class="grafica-container">
+                <canvas id="graficaPrioridad"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-green-50 p-6 rounded-xl shadow-lg border border-green-200">
+            <h3 class="text-2xl font-semibold text-green-800 mb-6 border-b pb-4">Incidentes por Tipo</h3>
+
+            <div class="grafica-container">
+                <canvas id="graficaTipo"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 p-6 rounded-xl shadow-lg border border-yellow-200">
+            <h3 class="text-2xl font-semibold text-yellow-800 mb-6 border-b pb-4">Estado General</h3>
+            <p class="text-gray-700 text-lg">Actualmente hay <span class="font-bold text-red-600">3 incidentes críticos</span> abiertos.</p>
+            </div>
+
+    </div>
+
+    <script>
+        // Los datos se pasan desde Python a JavaScript
+        const datosPrioridad = {{ datos_prioridad | tojson | safe }};
+        const datosTipo = {{ datos_tipos | tojson | safe }};
+    </script>
+
+{% endblock %}

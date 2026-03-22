@@ -1,0 +1,36 @@
+# Jetbrains
+.idea
+*.iml
+out
+gen
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+build/
+dist/
+
+# --- Environment Variables (CRÍTICO) ---
+.env
+.env.local
+.env.*
+!.env.example
+
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Database & Logs ---
+*.sqlite3
+*.log
+scripts/Old/
+
+# --- Static/Media (Opcional) ---
+# static/uploads/

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Incidentes{% endblock %}
+
+{% block page_title %}Incidentes Registrados{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex justify-end">
+    <a href="{{ url_for('mostrar_formulario_crear_incidente') }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+        + Registrar Nuevo Incidente
+    </a>
+</div>
+
+<div class="overflow-x-auto shadow-md rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200 bg-white">
+        <thead class="bg-gray-50">
+        <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asignado a</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Creación
+            </th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+        {% for inc in incidentes %}
+        <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ inc.titulo }}</div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                     {% if inc.nombre_prioridad == 'Crítica' %} bg-red-100 text-red-800
+                                     {% elif inc.nombre_prioridad == 'Alta' %} bg-orange-100 text-orange-800
+                                     {% elif inc.nombre_prioridad == 'Media' %} bg-yellow-100 text-yellow-800
+                                     {% else %} bg-blue-100 text-blue-800 {% endif %}">
+                            {{ inc.nombre_prioridad }}
+                        </span>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-700">{{ inc.nombre_estado }}</div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+                {% if inc.nombre_usuario %}
+                <div class="text-sm text-gray-700">{{ inc.nombre_usuario }}</div>
+                {% else %}
+                <span class="text-sm text-gray-400 italic">Sin asignar</span>
+                {% endif %}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-700">{{ inc.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+
+                <a href="{{ url_for('mostrar_detalle_incidente', incidente_id=inc.id_incidente) }}"
+                   class="text-teal-600 hover:text-teal-900 font-bold mr-4">
+                    Ver Expediente
+                </a>
+
+                <a href="{{ url_for('mostrar_formulario_editar_incidente', incidente_id=inc.id_incidente) }}"
+                   class="text-indigo-600 hover:text-indigo-900 mr-4">
+                    Editar
+                </a>
+
+                <form action="{{ url_for('procesar_eliminar_incidente', incidente_id=inc.id_incidente) }}"
+                      method="POST"
+                      class="inline"
+                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este incidente?');">
+                    <button type="submit"
+                            class="text-red-600 hover:text-red-900 bg-transparent border-none p-0 cursor-pointer font-medium">
+                        Eliminar
+                    </button>
+                </form>
+
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                No hay incidentes registrados.
+            </td>
+        </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

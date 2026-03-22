@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if incidente %}
+        Editar Incidente
+    {% else %}
+        Registrar Incidente
+    {% endif %}
+{% endblock %}
+
+{% block page_title %}
+    {% if incidente %}
+        Editar Incidente: #{{ incidente.id_incidente }}
+    {% else %}
+        Registrar Nuevo Incidente
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+
+    <form action="{% if incidente %}{{ url_for('procesar_editar_incidente', incidente_id=incidente.id_incidente) }}{% else %}{{ url_for('procesar_crear_incidente') }}{% endif %}"
+          method="POST"
+          class="space-y-6 max-w-lg mx-auto">
+
+        <div>
+            <label for="titulo" class="block text-sm font-medium text-gray-700">
+                Título del Incidente
+            </label>
+            <input type="text"
+                   name="titulo"
+                   id="titulo"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                   placeholder="ej: Ransomware en Servidor de Finanzas"
+                   value="{{ incidente.titulo or '' }}"
+                   required>
+        </div>
+
+        <div>
+            <label for="descripcion_detallada" class="block text-sm font-medium text-gray-700">
+                Descripción Detallada
+            </label>
+            <textarea name="descripcion_detallada"
+                      id="descripcion_detallada"
+                      rows="4"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      placeholder="Describe qué pasó, quién reportó, IPs de origen, etc."
+                      required>{{ incidente.descripcion_detallada or '' }}</textarea>
+        </div>
+
+        <div>
+            <label for="id_prioridad" class="block text-sm font-medium text-gray-700">Prioridad</label>
+            <select name="id_prioridad" id="id_prioridad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                {% for p in prioridades %}
+                    <option value="{{ p.id_prioridad }}"
+                            {% if incidente and incidente.id_prioridad == p.id_prioridad %}selected{% endif %}>
+                        {{ p.nivel }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="id_tipo" class="block text-sm font-medium text-gray-700">Tipo de Incidente</label>
+            <select name="id_tipo" id="id_tipo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                {% for t in tipos %}
+                    <option value="{{ t.id_tipo }}"
+                            {% if incidente and incidente.id_tipo == t.id_tipo %}selected{% endif %}>
+                        {{ t.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="id_estado" class="block text-sm font-medium text-gray-700">Estado Actual</label>
+            <select name="id_estado" id="id_estado" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                {% for e in estados %}
+                    <option value="{{ e.id_estado }}"
+                            {% if incidente and incidente.id_estado == e.id_estado %}selected{% endif %}>
+                        {{ e.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="id_usuario_asignado" class="block text-sm font-medium text-gray-700">Asignar a</label>
+            <select name="id_usuario_asignado" id="id_usuario_asignado" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <option value="" {% if not incidente or not incidente.id_usuario_asignado %}selected{% endif %}>
+                    -- Sin Asignar --
+                </option>
+                {% for u in usuarios %}
+                    <option value="{{ u.id_usuario }}"
+                            {% if incidente and incidente.id_usuario_asignado == u.id_usuario %}selected{% endif %}>
+                        {{ u.nombre_completo }} ({{ u.rol }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t mt-6">
+            <a href="{{ url_for('mostrar_lista_de_incidentes') }}"
+               class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Cancelar
+            </a>
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Guardar Incidente
+            </button>
+        </div>
+
+    </form>
+
+{% endblock %}

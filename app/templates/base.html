@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión SIEM{% endblock %}</title>
+
+    <link rel="icon" href="{{ url_for('static', path='./img/SecurityIcon.png') }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="{{ url_for('static', path='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex min-h-screen">
+
+    <aside class="w-64 bg-white shadow-lg p-6 flex flex-col justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-800 mb-6 border-b pb-4">Gestión SIEM</h1>
+            <nav>
+                <ul>
+                    <li class="mb-3">
+                        <a href="{{ url_for('mostrar_dashboard') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Dashboard</a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="{{ url_for('mostrar_lista_de_incidentes') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Incidentes</a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="{{ url_for('mostrar_lista_de_activos') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Activos</a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="{{ url_for('mostrar_lista_de_usuarios') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Usuarios</a>
+                    </li>
+                    <li class="mb-3">
+                        <a href="{{ url_for('mostrar_admin_catalogos') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Administración</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="text-sm text-gray-500 mt-8 pt-4 border-t">
+            <p>&copy; 2025 SICC Proyect</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8">
+        <header class="bg-white shadow-md rounded-lg p-6 mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900">{% block page_title %}Página{% endblock %}</h2>
+        </header>
+
+        <section class="bg-white p-8 rounded-lg shadow-md">
+            {% block content %}
+            {% endblock %}
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', path='js/dashboard.js') }}"></script>
+</body>
+</html>

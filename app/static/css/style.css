@@ -1,0 +1,33 @@
+/*
+============================================================
+Estilos Generales
+============================================================
+*/
+
+/* Fondo celestito suave para el body */
+body {
+    background-color: #f0f4f8; /* Un celeste muy claro */
+    font-family: 'Inter', sans-serif; /* Puedes añadir una fuente si quieres */
+}
+
+/*
+============================================================
+Estilos del Dashboard
+============================================================
+*/
+
+/* Contenedor de las gráficas para controlar su tamaño */
+.grafica-container {
+    position: relative;
+    height: 350px; /* Altura fija para todas las gráficas */
+    width: 100%; /* Ocupa el 100% del ancho de su tarjeta */
+    margin: auto; /* Centra la gráfica si el contenedor es más grande */
+}
+
+/* Opcional: para que las leyendas de Chart.js se vean mejor en algunos casos */
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Agrega cualquier otro estilo CSS personalizado aquí */
