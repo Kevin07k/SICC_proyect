@@ -8,7 +8,7 @@ from app import schemas
 # ==========================================
 
 def get_tipos_incidente(conn: Connection):
-    query = text("SELECT * FROM cat_Tipos_Incidente")
+    query = text("SELECT * FROM cat_Tipos_Incidente WHERE eliminado = 0")
     result = conn.execute(query)
     return result.mappings().all()
 
@@ -16,18 +16,18 @@ def get_tipos_incidente(conn: Connection):
 def get_prioridades(conn: Connection):
     # Ordena por valor_orden descendente (Mayor número = Más crítica)
     # Ajusta 'DESC' o 'ASC' según tu lógica de negocio
-    query = text("SELECT * FROM cat_Prioridades ORDER BY valor_orden DESC")
+    query = text("SELECT * FROM cat_Prioridades WHERE eliminado = 0 ORDER BY valor_orden DESC")
     result = conn.execute(query)
     return result.mappings().all()
 
 
 def get_estados(conn: Connection):
-    query = text("SELECT * FROM cat_Estados")
+    query = text("SELECT * FROM cat_Estados WHERE eliminado = 0")
     result = conn.execute(query)
     return result.mappings().all()
 
 def get_sedes(conn: Connection):
-    query = text("SELECT * FROM cat_Sedes ORDER BY nombre_sede ASC")
+    query = text("SELECT * FROM cat_Sedes WHERE eliminado = 0 ORDER BY nombre_sede ASC")
     result = conn.execute(query)
     return result.mappings().all()
 
@@ -38,19 +38,19 @@ def get_sedes(conn: Connection):
 
 def get_tipo_incidente(conn: Connection, tipo_id: int):
     # CORRECCIÓN: id -> id_tipo
-    query = text("SELECT * FROM cat_Tipos_Incidente WHERE id_tipo = :id")
+    query = text("SELECT * FROM cat_Tipos_Incidente WHERE id_tipo = :id AND eliminado = 0")
     result = conn.execute(query, {"id": tipo_id})
     return result.mappings().first()
 
 def get_prioridad(conn: Connection, prioridad_id: int):
     # CORRECCIÓN: id -> id_prioridad
-    query = text("SELECT * FROM cat_Prioridades WHERE id_prioridad = :id")
+    query = text("SELECT * FROM cat_Prioridades WHERE id_prioridad = :id AND eliminado = 0")
     result = conn.execute(query, {"id": prioridad_id})
     return result.mappings().first()
 
 def get_estado(conn: Connection, estado_id: int):
     # CORRECCIÓN: id -> id_estado
-    query = text("SELECT * FROM cat_Estados WHERE id_estado = :id")
+    query = text("SELECT * FROM cat_Estados WHERE id_estado = :id AND eliminado = 0")
     result = conn.execute(query, {"id": estado_id})
     return result.mappings().first()
 
@@ -127,7 +127,7 @@ def eliminar_tipo_incidente(conn: Connection, tipo_id: int):
         raise HTTPException(status_code=404, detail="Tipo de incidente no encontrado")
 
     # CORRECCIÓN: Cambiamos 'id' por 'id_tipo'
-    query = text("DELETE FROM cat_Tipos_Incidente WHERE id_tipo = :id")
+    query = text("UPDATE cat_Tipos_Incidente SET eliminado = 1 WHERE id_tipo = :id")
 
     try:
         conn.execute(query, {"id": tipo_id})

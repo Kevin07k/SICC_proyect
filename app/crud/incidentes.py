@@ -22,6 +22,7 @@ def get_incidentes(conn: Connection, skip: int = 0, limit: int = 100):
                           LEFT JOIN cat_Estados e ON i.id_estado = e.id_estado
                      -- CORRECCIÓN AQUÍ ABAJO: cambiamos u.id por u.id_usuario
                           LEFT JOIN Usuarios u ON i.id_usuario_asignado = u.id_usuario
+                 WHERE i.eliminado = 0
                  ORDER BY i.fecha_creacion DESC
                  OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY
                  """)
@@ -49,7 +50,7 @@ def get_incidente(conn: Connection, incidente_id: int):
                           LEFT JOIN cat_Prioridades p ON i.id_prioridad = p.id_prioridad
                           LEFT JOIN cat_Estados e ON i.id_estado = e.id_estado
                           LEFT JOIN Usuarios u ON i.id_usuario_asignado = u.id_usuario
-                 WHERE i.id_incidente = :id
+                 WHERE i.id_incidente = :id AND i.eliminado = 0
                  """)
 
     result = conn.execute(query, {"id": incidente_id})
@@ -81,7 +82,7 @@ def get_incidente_con_detalles(conn: Connection, incidente_id: int):
         SELECT b.*, u.nombre_completo as nombre_usuario 
         FROM Bitacora_Investigacion b
         JOIN Usuarios u ON b.id_usuario = u.id_usuario
-        WHERE b.id_incidente = :id
+        WHERE b.id_incidente = :id AND b.eliminado = 0
     """)
     result_bitacoras = conn.execute(query_bitacoras, {"id": incidente_id})
     incidente_dict["bitacoras"] = result_bitacoras.mappings().all()
@@ -95,7 +96,7 @@ def get_incidente_con_detalles(conn: Connection, incidente_id: int):
         SELECT a.*, ia.notas_relacion
         FROM Activos a
         JOIN Incidentes_Activos ia ON a.id_activo = ia.id_activo
-        WHERE ia.id_incidente = :id
+        WHERE ia.id_incidente = :id AND ia.eliminado = 0 AND a.eliminado = 0
     """)
     result_activos = conn.execute(query_activos, {"id": incidente_id})
     incidente_dict["activos_asociados"] = result_activos.mappings().all()
@@ -217,7 +218,7 @@ def eliminar_incidente(conn: Connection, incidente_id: int):
     # OJO: Si tienes bitácoras o activos vinculados, SQL Server dará error de FK.
     # Podrías borrar primero las relaciones o dejar que falle para proteger datos.
     # Aquí intentamos borrar directo.
-    query = text("DELETE FROM Incidentes WHERE id_incidente = :id")
+    query = text("UPDATE Incidentes SET eliminado = 1 WHERE id_incidente = :id")
 
     try:
         conn.execute(query, {"id": incidente_id})
@@ -236,8 +237,8 @@ def eliminar_vinculo_incidente_activo(conn: Connection, incidente_id: int, activ
     """
     # Usamos los nombres correctos: id_incidente y id_activo
     query = text("""
-                 DELETE
-                 FROM Incidentes_Activos
+                 UPDATE Incidentes_Activos
+                 SET eliminado = 1
                  WHERE id_incidente = :id_incidente
                    AND id_activo = :id_activo
                  """)

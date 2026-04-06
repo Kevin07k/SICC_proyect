@@ -12,7 +12,7 @@ def get_bitacora(conn: Connection, bitacora_id: int):
     """
     # CORRECCIÓN PREVENTIVA: id -> id_bitacora
     # (Siguiendo el patrón de tu base de datos)
-    query = text("SELECT * FROM Bitacora_Investigacion WHERE id_bitacora = :id")
+    query = text("SELECT * FROM Bitacora_Investigacion WHERE id_bitacora = :id AND eliminado = 0")
     result = conn.execute(query, {"id": bitacora_id})
 
     # Devuelve la fila encontrada o None
@@ -95,7 +95,7 @@ def eliminar_bitacora(conn: Connection, bitacora_id: int):
         raise HTTPException(status_code=404, detail="Bitácora no encontrada")
 
     # CORRECCIÓN PREVENTIVA: id -> id_bitacora
-    query = text("DELETE FROM Bitacora_Investigacion WHERE id_bitacora = :id")
+    query = text("UPDATE Bitacora_Investigacion SET eliminado = 1 WHERE id_bitacora = :id")
 
     try:
         conn.execute(query, {"id": bitacora_id})

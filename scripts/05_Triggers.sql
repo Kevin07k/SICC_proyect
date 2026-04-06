@@ -78,5 +78,101 @@ BEGIN
 END;
 GO
 
+-- =============================================
+-- Triggers: Auditoría de Última Modificación (fecha_actualizacion)
+-- Descripción: Triggers AFTER UPDATE para cada tabla que automatizan
+--              la actualización del campo fecha_actualizacion.
+-- =============================================
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_cat_Tipos_Incidente
+ON cat_Tipos_Incidente AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM cat_Tipos_Incidente t INNER JOIN inserted i ON t.id_tipo = i.id_tipo;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_cat_Prioridades
+ON cat_Prioridades AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM cat_Prioridades t INNER JOIN inserted i ON t.id_prioridad = i.id_prioridad;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_cat_Estados
+ON cat_Estados AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM cat_Estados t INNER JOIN inserted i ON t.id_estado = i.id_estado;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_cat_Sedes
+ON cat_Sedes AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM cat_Sedes t INNER JOIN inserted i ON t.id_sede = i.id_sede;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_Usuarios
+ON Usuarios AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM Usuarios t INNER JOIN inserted i ON t.id_usuario = i.id_usuario;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_Activos
+ON Activos AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM Activos t INNER JOIN inserted i ON t.id_activo = i.id_activo;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_Incidentes
+ON Incidentes AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM Incidentes t INNER JOIN inserted i ON t.id_incidente = i.id_incidente;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_Incidentes_Activos
+ON Incidentes_Activos AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM Incidentes_Activos t INNER JOIN inserted i ON t.id_incidente_activo = i.id_incidente_activo;
+END;
+GO
+
+CREATE OR ALTER TRIGGER trg_UpdateAt_Bitacora_Investigacion
+ON Bitacora_Investigacion AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(fecha_actualizacion)
+        UPDATE t SET t.fecha_actualizacion = GETDATE()
+        FROM Bitacora_Investigacion t INNER JOIN inserted i ON t.id_bitacora = i.id_bitacora;
+END;
+GO
+
 PRINT '>> Triggers DDL Creados Correctamente.';
 GO

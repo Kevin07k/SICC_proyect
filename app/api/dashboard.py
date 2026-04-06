@@ -18,11 +18,13 @@ async def mostrar_dashboard(
     # Pasamos 'conn', no 'session'
     datos_tipos = crud.get_conteo_incidentes_por_tipo(conn)
     datos_prioridad = crud.get_conteo_incidentes_por_prioridad(conn)
+    conteo_criticos = crud.get_conteo_incidentes_criticos(conn)
 
     context = {
         "request": request,
         "datos_tipos": datos_tipos,
-        "datos_prioridad": datos_prioridad
+        "datos_prioridad": datos_prioridad,
+        "conteo_criticos": conteo_criticos
     }
     return templates.TemplateResponse("index.html", context)
 

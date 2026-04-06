@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import Column, NVARCHAR, UniqueConstraint
-from sqlalchemy.dialects.mssql import DATETIME2
+from sqlalchemy.dialects.mssql import DATETIME2, BIT
 from sqlalchemy.sql import func
 
 if TYPE_CHECKING:
@@ -22,6 +22,8 @@ class Incidentes(SQLModel, table=True):
         default=None,
         sa_column=Column(DATETIME2, server_default=func.now(), nullable=False)
     )
+    fecha_actualizacion: Optional[datetime] = Field(default=None, sa_column=Column(DATETIME2, server_default=func.now(), nullable=False))
+    eliminado: bool = Field(default=False, sa_column=Column(BIT, server_default="0", nullable=False))
     fecha_cierre: Optional[datetime] = Field(default=None, sa_column=Column(DATETIME2))
 
     id_tipo: int = Field(foreign_key="cat_Tipos_Incidente.id_tipo")
@@ -46,6 +48,9 @@ class Incidentes_Activos(SQLModel, table=True):
     id_activo: int = Field(foreign_key="Activos.id_activo")
 
     notas_relacion: Optional[str] = Field(default=None, max_length=300)
+    fecha_creacion: Optional[datetime] = Field(default=None, sa_column=Column(DATETIME2, server_default=func.now(), nullable=False))
+    fecha_actualizacion: Optional[datetime] = Field(default=None, sa_column=Column(DATETIME2, server_default=func.now(), nullable=False))
+    eliminado: bool = Field(default=False, sa_column=Column(BIT, server_default="0", nullable=False))
 
     incidente: "Incidentes" = Relationship(back_populates="activos_links")
     activo: "Activos" = Relationship(back_populates="incidentes_links")

@@ -197,8 +197,9 @@ async def mostrar_detalle_incidente(
     # Usamos la función del CRUD que carga todos los detalles
     incidente = crud_incidentes.get_incidente_con_detalles(conn, incidente_id)
 
-    # También necesitamos la lista de TODOS los usuarios
+    # También necesitamos la lista de TODOS los usuarios y activos
     usuarios_para_vincular = crud_usuarios.get_usuarios(conn)
+    activos_para_vincular = crud_activos.get_activos(conn)
 
     context = {
         "request": request,

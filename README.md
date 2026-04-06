@@ -23,6 +23,22 @@ Dado que este proyecto utiliza `pyodbc` para conectarse a SQL Server, es obligat
    sudo dnf install -y msodbcsql18
    ```
 
+#### Para Debian y derivados (Ubuntu, Linux Mint)
+
+1. Moverse al repositorio principal e instalar la base de Microsoft (ejemplo para Ubuntu 24.04):
+
+   ```bash
+   curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+   curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+   ```
+
+2. Instalar `unixODBC` y el driver `msodbcsql18` (aceptando internamente la EULA de Microsoft):
+
+   ```bash
+   sudo apt-get update
+   sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc unixodbc-dev libodbc2 odbcinst
+   ```
+
 #### Para Arch Linux (y derivados como Manjaro/EndeavourOS)
 
 1. Instalar el Driver Manager desde los repositorios oficiales:
@@ -82,9 +98,15 @@ Dado que este proyecto utiliza `pyodbc` para conectarse a SQL Server, es obligat
 
 Antes de encender la API, debes crear la base de datos y sus tablas en tu instancia de SQL Server usando los scripts proporcionados en la carpeta `scripts/`.
 
-1. Conéctate a tu contenedor de SQL Server a través de un gestor como Azure Data Studio, DBeaver o la extensión de SQL Server en VS Code.
-2. Ejecuta primero **`scripts/DataBase.sql`** (Este script hace un Clean Install, creando la DB y las tablas).
-3. (Opcional) Ejecuta **`scripts/Data_DataBase.sql`** si deseas poblar la base de datos con datos y registros de prueba para el Dashboard.
+1. Conéctate a tu contenedor de SQL Server a través de un gestor como Azure Data Studio, DBeaver o la extensión de SQL Server en VS Code (o directamente en terminal con `sqlcmd`).
+2. Ejecuta los scripts en orden numérico:
+   - **`01_Estructura_Tablas.sql`**: Limpia la base de datos anterior y crea el esquema vacío.
+   - **`02_Catalogos_Iniciales.sql`**: Rellena catálogos clave (Tipos, Prioridades, Sedes, Usuarios).
+   - **`03_Vistas.sql`**: Genera vistas para el dashboard y métricas.
+   - **`04_Procedimientos.sql`**: Compila métodos de borrado, cierre, y escalamiento.
+   - **`05_Triggers.sql`**: Registra los automatismos de auditoría e historial en bitácora.
+   - **`06_Indices.sql`**: Genera mejoras de rendimiento local en búsquedas.
+   - **`07_Mock_Data.sql` (Opcional)**: Inyecta pseudo-aleatoriamente cientos de registros para poblar masivamente de demostración.
 
 ---
 

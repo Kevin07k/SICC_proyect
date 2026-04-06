@@ -5,6 +5,7 @@ from app import schemas
 def get_sedes(conn: Connection, skip: int = 0, limit: int = 100):
     query = text("""
         SELECT * FROM cat_Sedes
+        WHERE eliminado = 0
         ORDER BY nombre_sede ASC
         OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY
     """)
@@ -12,7 +13,7 @@ def get_sedes(conn: Connection, skip: int = 0, limit: int = 100):
     return result.mappings().all()
 
 def get_sede(conn: Connection, sede_id: int):
-    query = text("SELECT * FROM cat_Sedes WHERE id_sede = :id")
+    query = text("SELECT * FROM cat_Sedes WHERE id_sede = :id AND eliminado = 0")
     result = conn.execute(query, {"id": sede_id})
     return result.mappings().first()
 
@@ -57,7 +58,7 @@ def eliminar_sede(conn: Connection, sede_id: int):
     if not get_sede(conn, sede_id):
         raise HTTPException(status_code=404, detail="Sede no encontrada")
 
-    query = text("DELETE FROM cat_Sedes WHERE id_sede = :id")
+    query = text("UPDATE cat_Sedes SET eliminado = 1 WHERE id_sede = :id")
     try:
         conn.execute(query, {"id": sede_id})
         conn.commit()

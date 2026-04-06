@@ -9,7 +9,7 @@ from app import schemas
 
 def get_usuario(conn: Connection, usuario_id: int):
     # CORRECCIÓN: id -> id_usuario
-    query = text("SELECT * FROM Usuarios WHERE id_usuario = :id")
+    query = text("SELECT * FROM Usuarios WHERE id_usuario = :id AND eliminado = 0")
     result = conn.execute(query, {"id": usuario_id})
     return result.mappings().first()
 
@@ -25,6 +25,7 @@ def get_usuarios(conn: Connection, skip: int = 0, limit: int = 100):
     query = text("""
                  SELECT *
                  FROM Usuarios
+                 WHERE eliminado = 0
                  ORDER BY nombre_completo ASC
                  OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY
                  """)
@@ -102,7 +103,7 @@ def eliminar_usuario(conn: Connection, usuario_id: int):
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     # CORRECCIÓN: id -> id_usuario
-    query = text("DELETE FROM Usuarios WHERE id_usuario = :id")
+    query = text("UPDATE Usuarios SET eliminado = 1 WHERE id_usuario = :id")
 
     try:
         conn.execute(query, {"id": usuario_id})

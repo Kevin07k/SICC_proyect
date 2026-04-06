@@ -12,7 +12,7 @@ def get_activo(conn: Connection, activo_id: int):
         SELECT a.id_activo, a.hostname, a.direccion_ip, a.tipo_activo, a.propietario, a.id_sede, s.nombre_sede 
         FROM Activos a
         LEFT JOIN cat_Sedes s ON a.id_sede = s.id_sede
-        WHERE a.id_activo = :id
+        WHERE a.id_activo = :id AND a.eliminado = 0
     """)
     result = conn.execute(query, {"id": activo_id})
     return result.mappings().first()
@@ -26,6 +26,7 @@ def get_activos(conn: Connection, skip: int = 0, limit: int = 100):
                  SELECT a.id_activo, a.hostname, a.direccion_ip, a.tipo_activo, a.propietario, a.id_sede, s.nombre_sede
                  FROM Activos a
                  LEFT JOIN cat_Sedes s ON a.id_sede = s.id_sede
+                 WHERE a.eliminado = 0
                  ORDER BY a.hostname ASC
                  OFFSET :skip ROWS FETCH NEXT :limit ROWS ONLY
                  """)
@@ -120,7 +121,7 @@ def eliminar_activo(conn: Connection, activo_id: int):
     if conn.execute(check_query, {"id": activo_id}).scalar():
         raise HTTPException(status_code=400, detail="No se puede eliminar: El activo está vinculado a incidentes (Verificado con EXISTS).")
 
-    query = text("DELETE FROM Activos WHERE id_activo = :id")
+    query = text("UPDATE Activos SET eliminado = 1 WHERE id_activo = :id")
 
     try:
         conn.execute(query, {"id": activo_id})
