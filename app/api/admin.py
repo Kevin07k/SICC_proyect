@@ -1,19 +1,15 @@
-# ===================================
-# Admin CRUD
-# ===================================
-
 from typing import Optional
 
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import Connection  # <--- CAMBIO: Usamos Connection, no Session
+from sqlalchemy import Connection
 
-from app.crud import categorias as crud  # Asegúrate de importar el CRUD correcto
+from app.crud import categorias as crud
 from app import schemas
-from app.core.database import get_session  # <--- CAMBIO: La nueva dependencia
+from app.core.database import get_session
+from app.core.context import get_base_context
 
-# --- CONFIGURACIÓN ---
 router = APIRouter(
     prefix="/admin",
     tags=["Admin"]
@@ -22,36 +18,41 @@ router = APIRouter(
 templates = Jinja2Templates(directory="app/templates")
 
 
-# --- RUTAS ---
-
 @router.get("/categorias", name="mostrar_admin_categorias")
 async def mostrar_admin_categorias(
         request: Request,
-        conn: Connection = Depends(get_session)  # <--- CAMBIO: conn
+        conn: Connection = Depends(get_session)
 ):
-    context = {
-        "request": request,
+    context = get_base_context(request, "categorias")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if context["acceso_denegado"]:
+        return templates.TemplateResponse("categorias/categorias_admin.html", context)
+
+    context.update({
         "tipos": crud.get_tipos_incidente(conn),
         "prioridades": crud.get_prioridades(conn),
         "estados": crud.get_estados(conn)
-    }
+    })
     return templates.TemplateResponse("categorias/categorias_admin.html", context)
 
 
-# --- CREAR TIPO ---
-
 @router.get("/tipos/crear", name="mostrar_formulario_crear_tipo")
 async def mostrar_formulario_crear_tipo(request: Request):
-    context = {
-        "request": request,
-        "tipo": None
-    }
+    context = get_base_context(request, "categorias")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if not context["puede_crear"]:
+        context["acceso_denegado"] = True
+        return templates.TemplateResponse("categorias/tipo_form.html", context)
+
+    context["tipo"] = None
     return templates.TemplateResponse("categorias/tipo_form.html", context)
 
 
 @router.post("/tipos/crear", name="procesar_crear_tipo")
 async def procesar_crear_tipo(
-        conn: Connection = Depends(get_session),  # <--- CAMBIO
+        conn: Connection = Depends(get_session),
         nombre: str = Form(...),
         descripcion: Optional[str] = Form(None)
 ):
@@ -59,7 +60,6 @@ async def procesar_crear_tipo(
         nombre=nombre,
         descripcion=descripcion
     )
-    # Pasamos 'conn' en lugar de 'session'
     crud.crear_tipo_incidente(conn=conn, tipo=tipo_data)
 
     return RedirectResponse(
@@ -68,21 +68,21 @@ async def procesar_crear_tipo(
     )
 
 
-# --- EDITAR TIPO ---
-
 @router.get("/tipos/editar/{tipo_id}", name="mostrar_formulario_editar_tipo")
 async def mostrar_formulario_editar_tipo(
         request: Request,
         tipo_id: int,
         conn: Connection = Depends(get_session)
 ):
-    # Aquí buscamos por ID para llenar el formulario
-    tipo_encontrado = crud.get_tipo_incidente(conn, tipo_id)
+    context = get_base_context(request, "categorias")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if not context["puede_editar"]:
+        context["acceso_denegado"] = True
+        return templates.TemplateResponse("categorias/tipo_form.html", context)
 
-    context = {
-        "request": request,
-        "tipo": tipo_encontrado
-    }
+    tipo_encontrado = crud.get_tipo_incidente(conn, tipo_id)
+    context["tipo"] = tipo_encontrado
     return templates.TemplateResponse("categorias/tipo_form.html", context)
 
 
@@ -94,17 +94,15 @@ async def procesar_editar_tipo(
         nombre: str = Form(...),
         descripcion: Optional[str] = Form(None)
 ):
-    # Ya no necesitamos buscar 'db_tipo' antes.
-    # Creamos el esquema de actualización directo.
     tipo_update = schemas.TipoIncidenteUpdate(
         nombre=nombre,
         descripcion=descripcion
     )
 
     crud.actualizar_tipo_incidente(
-        conn=conn,  # Conexión
-        tipo_id=tipo_id,  # ID (entero)
-        tipo_update=tipo_update  # Datos nuevos
+        conn=conn,
+        tipo_id=tipo_id,
+        tipo_update=tipo_update
     )
 
     return RedirectResponse(
@@ -113,18 +111,11 @@ async def procesar_editar_tipo(
     )
 
 
-# --- ELIMINAR TIPO ---
-
 @router.post("/tipos/eliminar/{tipo_id}", name="procesar_eliminar_tipo")
 async def procesar_eliminar_tipo(
         tipo_id: int,
         conn: Connection = Depends(get_session)
 ):
-    """
-    Elimina un Tipo de Incidente.
-    """
-    # Simplificado: El CRUD ya verifica si existe o no dentro de su lógica.
-    # Solo llamamos a la función de eliminar pasando el ID.
     crud.eliminar_tipo_incidente(conn=conn, tipo_id=tipo_id)
 
     return RedirectResponse(

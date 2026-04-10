@@ -15,31 +15,68 @@
 
     <aside class="w-64 bg-white shadow-lg p-6 flex flex-col justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-blue-800 mb-6 border-b pb-4">Gestión SIEM</h1>
+            <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-4">Gestión SIEM</h1>
+
+            <!-- Info del usuario -->
+            {% if usuario_actual %}
+            <div class="mb-4 px-3 py-3 bg-blue-50 rounded-lg">
+                <p class="text-sm font-semibold text-blue-900">{{ usuario_actual.nombre }}</p>
+                <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full
+                    {% if usuario_actual.rol == 'DBA' %}bg-red-100 text-red-700
+                    {% elif usuario_actual.rol == 'Gerente' %}bg-amber-100 text-amber-700
+                    {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                    {{ usuario_actual.rol }}
+                </span>
+            </div>
+            {% endif %}
+
             <nav>
                 <ul>
+                    {% if 'dashboard' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_dashboard') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Dashboard</a>
                     </li>
+                    {% endif %}
+
+                    {% if 'incidentes' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_lista_de_incidentes') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Incidentes</a>
                     </li>
+                    {% endif %}
+
+                    {% if 'activos' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_lista_de_activos') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Activos</a>
                     </li>
+                    {% endif %}
+
+                    {% if 'sedes' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_lista_de_sedes') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Sedes</a>
                     </li>
+                    {% endif %}
+
+                    {% if 'usuarios' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_lista_de_usuarios') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Usuarios</a>
                     </li>
+                    {% endif %}
+
+                    {% if 'categorias' in secciones_permitidas %}
                     <li class="mb-3">
                         <a href="{{ url_for('mostrar_admin_categorias') }}" class="text-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-md block transition duration-200">Categorías</a>
                     </li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>
         <div class="text-sm text-gray-500 mt-8 pt-4 border-t">
+            <a href="{{ url_for('procesar_logout') }}" class="flex items-center gap-2 text-red-500 hover:text-red-700 font-medium mb-3 transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Cerrar Sesión
+            </a>
             <p>&copy; 2025 SICC Proyect</p>
         </div>
     </aside>
@@ -49,10 +86,20 @@
             <h2 class="text-3xl font-extrabold text-gray-900">{% block page_title %}Página{% endblock %}</h2>
         </header>
 
+        {% if acceso_denegado %}
+        <section class="bg-white p-8 rounded-lg shadow-md text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Acceso Denegado</h3>
+            <p class="text-gray-600">Tu rol <span class="font-semibold">({{ usuario_actual.rol }})</span> no tiene permisos para acceder a esta sección.</p>
+        </section>
+        {% else %}
         <section class="bg-white p-8 rounded-lg shadow-md">
             {% block content %}
             {% endblock %}
         </section>
+        {% endif %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

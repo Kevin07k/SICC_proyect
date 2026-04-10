@@ -1,13 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 
-# Importamos la función para crear tablas
-# from app.core.database import create_db_and_tables
+from app.core.auth import get_current_user
 
-# Importamos los routers desde tu carpeta 'router'
-# Nota: He quitado 'bitacora' asumiendo que su lógica está dentro de 'incidentes.py'
-from app.api import dashboard, incidentes, activos, usuarios, admin, bitacora, sedes
+from app.api import dashboard, incidentes, activos, usuarios, admin, bitacora, sedes, auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,9 +24,30 @@ app = FastAPI(
 # --- Montar Archivos Estáticos ---
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+
+# --- Middleware de autenticación ---
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    rutas_publicas = ["/login", "/static", "/docs", "/openapi.json", "/redoc"]
+    path = request.url.path
+
+    for ruta in rutas_publicas:
+        if path.startswith(ruta):
+            return await call_next(request)
+
+    user = get_current_user(request)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    request.state.user = user
+    response = await call_next(request)
+    return response
+
+
 # --- CONECTAR LAS RUTAS ---
+app.include_router(auth.router)
 app.include_router(dashboard.router)
-app.include_router(incidentes.router) # Aquí dentro deberían ir las rutas de bitácora
+app.include_router(incidentes.router)
 app.include_router(activos.router)
 app.include_router(usuarios.router)
 app.include_router(admin.router)

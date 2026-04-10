@@ -1,10 +1,10 @@
-# router/dashboard.py
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import Connection, text  # Usamos Connection y text
+from sqlalchemy import Connection, text
 
-from app.crud import dashboard as crud  # Importamos el nuevo CRUD
-from app.core.database import get_session  # La nueva dependencia
+from app.crud import dashboard as crud
+from app.core.database import get_session
+from app.core.context import get_base_context
 
 router = APIRouter(tags=["Dashboard"])
 templates = Jinja2Templates(directory="app/templates")
@@ -13,24 +13,27 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/", name="mostrar_dashboard")
 async def mostrar_dashboard(
         request: Request,
-        conn: Connection = Depends(get_session)  # <--- IMPORTANTE: conn
+        conn: Connection = Depends(get_session)
 ):
-    # Pasamos 'conn', no 'session'
+    context = get_base_context(request, "dashboard")
+    if not context:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/login", status_code=303)
+
+    if context["acceso_denegado"]:
+        return templates.TemplateResponse("index.html", context)
+
     datos_tipos = crud.get_conteo_incidentes_por_tipo(conn)
     datos_prioridad = crud.get_conteo_incidentes_por_prioridad(conn)
     conteo_criticos = crud.get_conteo_incidentes_criticos(conn)
 
-    context = {
-        "request": request,
+    context.update({
         "datos_tipos": datos_tipos,
         "datos_prioridad": datos_prioridad,
         "conteo_criticos": conteo_criticos
-    }
+    })
     return templates.TemplateResponse("index.html", context)
 
-# ===================================
-# SPRINT 5: VISTAS ESTADÍSTICAS
-# ===================================
 
 @router.get("/vistas/criticos", name="dashboard_incidentes_criticos")
 async def dashboard_incidentes_criticos(conn: Connection = Depends(get_session)):

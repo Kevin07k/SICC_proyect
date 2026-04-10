@@ -1,4 +1,3 @@
-# router/sedes.py
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -8,18 +7,34 @@ from typing import Optional
 from app.crud import sedes as crud
 from app import schemas
 from app.core.database import get_session
+from app.core.context import get_base_context
 
 router = APIRouter(prefix="/sedes", tags=["Sedes"])
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/", name="mostrar_lista_de_sedes")
 async def mostrar_lista_de_sedes(request: Request, conn: Connection = Depends(get_session)):
+    context = get_base_context(request, "sedes")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if context["acceso_denegado"]:
+        return templates.TemplateResponse("sedes/sedes_lista.html", context)
+
     sedes = crud.get_sedes(conn)
-    return templates.TemplateResponse("sedes/sedes_lista.html", {"request": request, "sedes": sedes})
+    context["sedes"] = sedes
+    return templates.TemplateResponse("sedes/sedes_lista.html", context)
 
 @router.get("/crear", name="mostrar_formulario_crear_sede")
 async def mostrar_formulario_crear_sede(request: Request):
-    return templates.TemplateResponse("sedes/sede_form.html", {"request": request, "sede": None})
+    context = get_base_context(request, "sedes")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if not context["puede_crear"]:
+        context["acceso_denegado"] = True
+        return templates.TemplateResponse("sedes/sede_form.html", context)
+
+    context["sede"] = None
+    return templates.TemplateResponse("sedes/sede_form.html", context)
 
 @router.post("/crear", name="procesar_crear_sede")
 async def procesar_crear_sede(
@@ -33,8 +48,16 @@ async def procesar_crear_sede(
 
 @router.get("/editar/{sede_id}", name="mostrar_formulario_editar_sede")
 async def mostrar_formulario_editar_sede(request: Request, sede_id: int, conn: Connection = Depends(get_session)):
+    context = get_base_context(request, "sedes")
+    if not context:
+        return RedirectResponse(url="/login", status_code=303)
+    if not context["puede_editar"]:
+        context["acceso_denegado"] = True
+        return templates.TemplateResponse("sedes/sede_form.html", context)
+
     sede = crud.get_sede(conn, sede_id)
-    return templates.TemplateResponse("sedes/sede_form.html", {"request": request, "sede": sede})
+    context["sede"] = sede
+    return templates.TemplateResponse("sedes/sede_form.html", context)
 
 @router.post("/editar/{sede_id}", name="procesar_editar_sede")
 async def procesar_editar_sede(

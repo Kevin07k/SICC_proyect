@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SICC</title>
+    <link rel="icon" href="{{ url_for('static', path='./img/SecurityIcon.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .input-field {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            outline: none;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+        }
+
+        .shield-icon {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)); }
+            50% { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.7)); }
+        }
+
+        .floating-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            animation: float-up 6s ease-in-out infinite;
+        }
+
+        @keyframes float-up {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-30px) scale(1.5); opacity: 0.7; }
+        }
+
+        .credential-card {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .credential-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            background: rgba(15, 23, 42, 0.7);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- Floating particles -->
+    <div class="floating-particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="floating-particle" style="top: 60%; left: 85%; animation-delay: 1s;"></div>
+    <div class="floating-particle" style="top: 40%; left: 50%; animation-delay: 2s;"></div>
+    <div class="floating-particle" style="top: 80%; left: 25%; animation-delay: 3s;"></div>
+    <div class="floating-particle" style="top: 15%; left: 70%; animation-delay: 4s;"></div>
+
+    <div class="w-full max-w-md">
+
+        <!-- Logo / Header -->
+        <div class="text-center mb-8">
+            <div class="shield-icon inline-block mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">SICC</h1>
+            <p class="text-slate-400 mt-1 text-sm">Sistema de Gestión de Incidentes de Ciberseguridad</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card rounded-2xl p-8 shadow-2xl">
+
+            <h2 class="text-xl font-semibold text-white mb-6 text-center">Iniciar Sesión</h2>
+
+            {% if error %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-red-400 text-sm">{{ error }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('procesar_login') }}" method="POST">
+                <div class="mb-5">
+                    <label for="username" class="block text-slate-300 text-sm font-medium mb-2">Usuario</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Ingrese su usuario"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="block text-slate-300 text-sm font-medium mb-2">Contraseña</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Ingrese su contraseña"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="btn-login w-full text-white font-semibold py-3 rounded-lg text-sm uppercase tracking-wider">
+                    Acceder al Sistema
+                </button>
+            </form>
+        </div>
+
+        <!-- Credential cards -->
+        <div class="mt-6 space-y-2">
+            <p class="text-slate-500 text-xs text-center mb-3 uppercase tracking-wider font-medium">Cuentas disponibles</p>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div class="credential-card rounded-lg p-3 text-center cursor-pointer" onclick="fillCredentials('vendedor', 'vendedor123')">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <p class="text-white text-xs font-semibold">Vendedor</p>
+                    <p class="text-slate-500 text-[10px] mt-1">Insertar / Actualizar</p>
+                </div>
+
+                <div class="credential-card rounded-lg p-3 text-center cursor-pointer" onclick="fillCredentials('gerente', 'gerente123')">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <p class="text-white text-xs font-semibold">Gerente</p>
+                    <p class="text-slate-500 text-[10px] mt-1">Solo Reportes</p>
+                </div>
+
+                <div class="credential-card rounded-lg p-3 text-center cursor-pointer" onclick="fillCredentials('dba', 'dba123')">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-white text-xs font-semibold">DBA</p>
+                    <p class="text-slate-500 text-[10px] mt-1">Control Total</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-slate-600 text-xs text-center mt-6">&copy; 2025 SICC Proyect - Todos los derechos reservados</p>
+    </div>
+
+    <script>
+        function fillCredentials(user, pass) {
+            document.getElementById('username').value = user;
+            document.getElementById('password').value = pass;
+            document.getElementById('username').focus();
+        }
+    </script>
+</body>
+</html>
