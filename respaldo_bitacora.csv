@@ -1,0 +1,6 @@
+id_bitacora,id_incidente,id_usuario,fecha_entrada,fecha_actualizacion,eliminado,comentario
+-----------,------------,----------,-------------,-------------------,---------,----------
+1,197,1,2026-04-11 01:08:58.5500000,2026-04-11 01:09:09.7066667,1,bl
+
+2,1002,2,2026-04-11 12:53:55.0500000,2026-04-11 12:53:55.0500000,0,Cambio Automático de Estado detectado: Nuevo -> Cerrado.
+3,1002,1,2026-04-11 12:53:55.0500000,2026-04-11 12:53:55.0500000,0,Incidente cerrado con la interfaz web usando Stored Procedure SP_CerrarIncidente

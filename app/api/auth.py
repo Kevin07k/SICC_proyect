@@ -149,12 +149,10 @@ async def procesar_registro(
         })
         conn.commit()
 
-        return templates.TemplateResponse("auth/register.html", {
-            "request": request,
-            "error": None,
-            "success": f"¡Cuenta creada exitosamente! Ya puedes iniciar sesión como '{username_clean}'.",
-            "form_data": None
-        })
+        return RedirectResponse(
+            url=router.url_path_for("mostrar_login"),
+            status_code=303
+        )
 
     except Exception as e:
         conn.rollback()

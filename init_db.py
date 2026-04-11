@@ -28,7 +28,8 @@ scripts = [
     "05_Triggers.sql",
     "06_Indices.sql",
     "07_Mock_Data.sql",
-    "08_Seguridad_Roles_Permisos.sql"
+    "08_Seguridad_Roles_Permisos.sql",
+    "09_Add_Auth_Columns.sql"
 ]
 
 def run_script(filename):
