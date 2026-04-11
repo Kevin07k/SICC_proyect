@@ -1,6 +1,10 @@
 USE DB_GestionIncidentes;
 GO
 
+-- ========================================
+-- LIMPIEZA DE ROLES Y USUARIOS PREVIOS
+-- ========================================
+
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'usr_vendedor')
 BEGIN
     ALTER ROLE rol_vendedor DROP MEMBER usr_vendedor;
@@ -16,6 +20,11 @@ BEGIN
     ALTER ROLE rol_dba DROP MEMBER usr_dba;
     DROP USER usr_dba;
 END
+IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'usr_developer')
+BEGIN
+    ALTER ROLE rol_developer DROP MEMBER usr_developer;
+    DROP USER usr_developer;
+END
 GO
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_vendedor' AND type = 'R')
@@ -24,46 +33,64 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_gerente' AND 
     DROP ROLE rol_gerente;
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_dba' AND type = 'R')
     DROP ROLE rol_dba;
+IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_developer' AND type = 'R')
+    DROP ROLE rol_developer;
 GO
 
 PRINT '>> Limpieza de roles y usuarios previos completada.';
 GO
 
+-- ========================================
+-- CREAR LOGINS DE SERVIDOR
+-- ========================================
+
 USE master;
 GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_vendedor')
-    CREATE LOGIN login_vendedor WITH PASSWORD = 'V3nd3d0r$SICC_2026!', DEFAULT_DATABASE = DB_GestionIncidentes;
+IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_vendedor')
+    DROP LOGIN login_vendedor;
+IF EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_gerente')
+    DROP LOGIN login_gerente;
+GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_gerente')
-    CREATE LOGIN login_gerente WITH PASSWORD = 'G3r3nt3$SICC_2026!', DEFAULT_DATABASE = DB_GestionIncidentes;
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_developer')
+    CREATE LOGIN login_developer WITH PASSWORD = 'D3v3l0p3r$SICC_2026!', DEFAULT_DATABASE = DB_GestionIncidentes;
 
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'login_dba')
     CREATE LOGIN login_dba WITH PASSWORD = 'Db4Adm1n$SICC_2026!', DEFAULT_DATABASE = DB_GestionIncidentes;
 
-PRINT '>> Logins de servidor creados.';
+PRINT '>> Logins de servidor creados (developer, dba).';
 GO
+
+-- ========================================
+-- CREAR ROLES DE BASE DE DATOS
+-- ========================================
 
 USE DB_GestionIncidentes;
 GO
 
-CREATE ROLE rol_vendedor;
-CREATE ROLE rol_gerente;
+CREATE ROLE rol_developer;
 CREATE ROLE rol_dba;
 
-PRINT '>> Roles de base de datos creados.';
+PRINT '>> Roles de base de datos creados (rol_developer, rol_dba).';
 GO
 
-CREATE USER usr_vendedor FOR LOGIN login_vendedor;
-CREATE USER usr_gerente FOR LOGIN login_gerente;
+-- ========================================
+-- CREAR USUARIOS Y ASIGNAR A ROLES
+-- ========================================
+
+CREATE USER usr_developer FOR LOGIN login_developer;
 CREATE USER usr_dba FOR LOGIN login_dba;
 
-ALTER ROLE rol_vendedor ADD MEMBER usr_vendedor;
-ALTER ROLE rol_gerente ADD MEMBER usr_gerente;
+ALTER ROLE rol_developer ADD MEMBER usr_developer;
 ALTER ROLE rol_dba ADD MEMBER usr_dba;
 
 PRINT '>> Usuarios creados y asignados a sus roles.';
 GO
+
+-- ========================================
+-- PERMISOS ROL_DBA (ADMIN - Control Total)
+-- ========================================
 
 ALTER ROLE db_owner ADD MEMBER usr_dba;
 
@@ -85,73 +112,54 @@ GRANT EXECUTE ON sp_RegistrarIncidenteCompleto TO rol_dba;
 GRANT EXECUTE ON sp_CerrarIncidente TO rol_dba;
 GRANT EXECUTE ON sp_AsignarAnalista TO rol_dba;
 
-PRINT '>> Permisos de ROL_DBA configurados (control total).';
+PRINT '>> Permisos de ROL_DBA configurados (control total del sistema).';
 GO
 
-GRANT SELECT, INSERT, UPDATE ON Incidentes TO rol_vendedor;
-GRANT SELECT, INSERT ON Incidentes_Activos TO rol_vendedor;
-GRANT SELECT, INSERT ON Bitacora_Investigacion TO rol_vendedor;
+-- ========================================
+-- PERMISOS ROL_DEVELOPER
+-- Puede: INSERT/UPDATE en Incidentes, Activos, Bitacora
+-- No puede: DELETE, ni acceder a reportes/vistas
+-- ========================================
 
-DENY DELETE ON Incidentes TO rol_vendedor;
-DENY DELETE ON Incidentes_Activos TO rol_vendedor;
-DENY DELETE ON Bitacora_Investigacion TO rol_vendedor;
-DENY UPDATE ON Bitacora_Investigacion TO rol_vendedor;
+GRANT SELECT, INSERT, UPDATE ON Incidentes TO rol_developer;
+GRANT SELECT, INSERT ON Incidentes_Activos TO rol_developer;
+GRANT SELECT, INSERT ON Bitacora_Investigacion TO rol_developer;
 
-GRANT SELECT ON Activos TO rol_vendedor;
-GRANT SELECT ON Usuarios TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON Activos TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON Usuarios TO rol_vendedor;
+DENY DELETE ON Incidentes TO rol_developer;
+DENY DELETE ON Incidentes_Activos TO rol_developer;
+DENY DELETE ON Bitacora_Investigacion TO rol_developer;
+DENY UPDATE ON Bitacora_Investigacion TO rol_developer;
 
-GRANT SELECT ON cat_Tipos_Incidente TO rol_vendedor;
-GRANT SELECT ON cat_Prioridades TO rol_vendedor;
-GRANT SELECT ON cat_Estados TO rol_vendedor;
-GRANT SELECT ON cat_Sedes TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON cat_Tipos_Incidente TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON cat_Prioridades TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON cat_Estados TO rol_vendedor;
-DENY INSERT, UPDATE, DELETE ON cat_Sedes TO rol_vendedor;
+GRANT SELECT ON Activos TO rol_developer;
+GRANT SELECT, INSERT, UPDATE ON Activos TO rol_developer;
+DENY DELETE ON Activos TO rol_developer;
 
-DENY SELECT ON vw_Auditoria_Incidentes_Sede TO rol_vendedor;
-DENY SELECT ON vw_Incidentes_Criticos_Abiertos TO rol_vendedor;
-DENY SELECT ON vw_Top_Activos_Atacados TO rol_vendedor;
+GRANT SELECT ON Usuarios TO rol_developer;
+DENY INSERT, UPDATE, DELETE ON Usuarios TO rol_developer;
 
-GRANT EXECUTE ON sp_RegistrarIncidenteCompleto TO rol_vendedor;
-DENY EXECUTE ON sp_CerrarIncidente TO rol_vendedor;
-DENY EXECUTE ON sp_AsignarAnalista TO rol_vendedor;
+GRANT SELECT ON cat_Tipos_Incidente TO rol_developer;
+GRANT SELECT ON cat_Prioridades TO rol_developer;
+GRANT SELECT ON cat_Estados TO rol_developer;
+GRANT SELECT ON cat_Sedes TO rol_developer;
+DENY INSERT, UPDATE, DELETE ON cat_Tipos_Incidente TO rol_developer;
+DENY INSERT, UPDATE, DELETE ON cat_Prioridades TO rol_developer;
+DENY INSERT, UPDATE, DELETE ON cat_Estados TO rol_developer;
+DENY INSERT, UPDATE, DELETE ON cat_Sedes TO rol_developer;
 
-PRINT '>> Permisos de ROL_VENDEDOR configurados (insertar y actualizar ciertas tablas).';
+DENY SELECT ON vw_Auditoria_Incidentes_Sede TO rol_developer;
+DENY SELECT ON vw_Incidentes_Criticos_Abiertos TO rol_developer;
+DENY SELECT ON vw_Top_Activos_Atacados TO rol_developer;
+
+GRANT EXECUTE ON sp_RegistrarIncidenteCompleto TO rol_developer;
+DENY EXECUTE ON sp_CerrarIncidente TO rol_developer;
+DENY EXECUTE ON sp_AsignarAnalista TO rol_developer;
+
+PRINT '>> Permisos de ROL_DEVELOPER configurados (insertar y actualizar incidentes/activos).';
 GO
 
-GRANT SELECT ON Incidentes TO rol_gerente;
-GRANT SELECT ON Incidentes_Activos TO rol_gerente;
-GRANT SELECT ON Bitacora_Investigacion TO rol_gerente;
-GRANT SELECT ON Activos TO rol_gerente;
-GRANT SELECT ON Usuarios TO rol_gerente;
-GRANT SELECT ON cat_Tipos_Incidente TO rol_gerente;
-GRANT SELECT ON cat_Prioridades TO rol_gerente;
-GRANT SELECT ON cat_Estados TO rol_gerente;
-GRANT SELECT ON cat_Sedes TO rol_gerente;
-
-DENY INSERT, UPDATE, DELETE ON Incidentes TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON Incidentes_Activos TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON Bitacora_Investigacion TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON Activos TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON Usuarios TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON cat_Tipos_Incidente TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON cat_Prioridades TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON cat_Estados TO rol_gerente;
-DENY INSERT, UPDATE, DELETE ON cat_Sedes TO rol_gerente;
-
-GRANT SELECT ON vw_Auditoria_Incidentes_Sede TO rol_gerente;
-GRANT SELECT ON vw_Incidentes_Criticos_Abiertos TO rol_gerente;
-GRANT SELECT ON vw_Top_Activos_Atacados TO rol_gerente;
-
-DENY EXECUTE ON sp_RegistrarIncidenteCompleto TO rol_gerente;
-DENY EXECUTE ON sp_CerrarIncidente TO rol_gerente;
-DENY EXECUTE ON sp_AsignarAnalista TO rol_gerente;
-
-PRINT '>> Permisos de ROL_GERENTE configurados (solo consulta de reportes).';
-GO
+-- ========================================
+-- RESUMEN DE SEGURIDAD
+-- ========================================
 
 PRINT '========================================';
 PRINT '   RESUMEN DE SEGURIDAD IMPLEMENTADA';

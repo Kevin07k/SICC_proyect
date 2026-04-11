@@ -23,8 +23,8 @@
                 <p class="text-sm font-semibold text-blue-900">{{ usuario_actual.nombre }}</p>
                 <span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full
                     {% if usuario_actual.rol == 'DBA' %}bg-red-100 text-red-700
-                    {% elif usuario_actual.rol == 'Gerente' %}bg-amber-100 text-amber-700
-                    {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                    {% elif usuario_actual.rol == 'Developer' %}bg-cyan-100 text-cyan-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
                     {{ usuario_actual.rol }}
                 </span>
             </div>

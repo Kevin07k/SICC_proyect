@@ -5,15 +5,10 @@ from functools import wraps
 SECRET_KEY = "sicc_secret_key_2026"
 
 CUENTAS = {
-    "vendedor": {
-        "password": "vendedor123",
-        "nombre": "Carlos Mendoza",
-        "rol": "Vendedor"
-    },
-    "gerente": {
-        "password": "gerente123",
-        "nombre": "María López",
-        "rol": "Gerente"
+    "developer": {
+        "password": "dev123",
+        "nombre": "Dev Operador",
+        "rol": "Developer"
     },
     "dba": {
         "password": "dba123",
@@ -31,21 +26,13 @@ PERMISOS_ROL = {
         "puede_ver_reportes": True,
         "descripcion": "Control total del sistema"
     },
-    "Vendedor": {
+    "Developer": {
         "secciones": ["dashboard", "incidentes", "activos"],
         "puede_crear": True,
         "puede_editar": True,
         "puede_eliminar": False,
         "puede_ver_reportes": False,
-        "descripcion": "Puede insertar y actualizar ciertas tablas"
-    },
-    "Gerente": {
-        "secciones": ["dashboard", "incidentes", "activos", "sedes", "usuarios"],
-        "puede_crear": False,
-        "puede_editar": False,
-        "puede_eliminar": False,
-        "puede_ver_reportes": True,
-        "descripcion": "Puede consultar los reportes"
+        "descripcion": "Registra y actualiza incidentes y activos"
     }
 }
 
