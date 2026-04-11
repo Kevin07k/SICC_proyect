@@ -28,7 +28,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # --- Middleware de autenticación ---
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    rutas_publicas = ["/login", "/static", "/docs", "/openapi.json", "/redoc"]
+    rutas_publicas = ["/login", "/register", "/static", "/docs", "/openapi.json", "/redoc"]
     path = request.url.path
 
     for ruta in rutas_publicas:

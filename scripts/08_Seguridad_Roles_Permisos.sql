@@ -25,6 +25,9 @@ BEGIN
     ALTER ROLE rol_developer DROP MEMBER usr_developer;
     DROP USER usr_developer;
 END
+
+-- Limpieza de usuarios de la aplicación eliminados lógicamente o roles obsoletos
+UPDATE Usuarios SET eliminado = 1 WHERE rol NOT IN ('Developer', 'DBA');
 GO
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_vendedor' AND type = 'R')
@@ -122,7 +125,7 @@ GO
 -- ========================================
 
 GRANT SELECT, INSERT, UPDATE ON Incidentes TO rol_developer;
-GRANT SELECT, INSERT ON Incidentes_Activos TO rol_developer;
+GRANT SELECT, INSERT, UPDATE ON Incidentes_Activos TO rol_developer;
 GRANT SELECT, INSERT ON Bitacora_Investigacion TO rol_developer;
 
 DENY DELETE ON Incidentes TO rol_developer;
@@ -130,7 +133,6 @@ DENY DELETE ON Incidentes_Activos TO rol_developer;
 DENY DELETE ON Bitacora_Investigacion TO rol_developer;
 DENY UPDATE ON Bitacora_Investigacion TO rol_developer;
 
-GRANT SELECT ON Activos TO rol_developer;
 GRANT SELECT, INSERT, UPDATE ON Activos TO rol_developer;
 DENY DELETE ON Activos TO rol_developer;
 

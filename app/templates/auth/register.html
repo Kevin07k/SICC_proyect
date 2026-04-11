@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Developer - SICC</title>
+    <link rel="icon" href="{{ url_for('static', path='./img/SecurityIcon.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+
+        .register-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .input-field {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+            outline: none;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.35);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .shield-icon {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.4)); }
+            50% { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.7)); }
+        }
+
+        .floating-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(6, 182, 212, 0.3);
+            border-radius: 50%;
+            animation: float-up 6s ease-in-out infinite;
+        }
+
+        @keyframes float-up {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-30px) scale(1.5); opacity: 0.7; }
+        }
+
+        .role-badge {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.05));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .link-login {
+            color: #38bdf8;
+            transition: all 0.2s ease;
+        }
+
+        .link-login:hover {
+            color: #7dd3fc;
+            text-decoration: underline;
+        }
+
+        .password-strength {
+            height: 3px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fade-in-up 0.5s ease-out forwards;
+        }
+
+        .success-msg {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- Floating particles -->
+    <div class="floating-particle" style="top: 15%; left: 12%; animation-delay: 0s;"></div>
+    <div class="floating-particle" style="top: 55%; left: 88%; animation-delay: 1.2s;"></div>
+    <div class="floating-particle" style="top: 35%; left: 45%; animation-delay: 2.4s;"></div>
+    <div class="floating-particle" style="top: 75%; left: 20%; animation-delay: 3.6s;"></div>
+    <div class="floating-particle" style="top: 25%; left: 75%; animation-delay: 4.8s;"></div>
+    <div class="floating-particle" style="top: 65%; left: 55%; animation-delay: 1.8s;"></div>
+
+    <div class="w-full max-w-md animate-in">
+
+        <!-- Logo / Header -->
+        <div class="text-center mb-8">
+            <div class="shield-icon inline-block mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-cyan-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">SICC</h1>
+            <p class="text-slate-400 mt-1 text-sm">Registro de Cuenta Developer</p>
+        </div>
+
+        <!-- Register Card -->
+        <div class="register-card rounded-2xl p-8 shadow-2xl">
+
+            <!-- Role Badge -->
+            <div class="role-badge rounded-lg px-4 py-2.5 mb-6 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                <div>
+                    <p class="text-cyan-300 text-xs font-semibold uppercase tracking-wider">Rol: Developer</p>
+                    <p class="text-slate-400 text-[11px]">Insertar y actualizar incidentes y activos</p>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-semibold text-white mb-6 text-center">Crear Cuenta</h2>
+
+            {% if error %}
+            <div class="error-msg rounded-lg p-3 mb-5">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-red-400 text-sm">{{ error }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if success %}
+            <div class="success-msg rounded-lg p-3 mb-5">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-emerald-400 text-sm">{{ success }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('procesar_registro') }}" method="POST" id="registerForm">
+                <div class="mb-4">
+                    <label for="nombre_completo" class="block text-slate-300 text-sm font-medium mb-2">Nombre Completo</label>
+                    <input
+                        type="text"
+                        id="nombre_completo"
+                        name="nombre_completo"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Ej: Juan Pérez López"
+                        required
+                        autocomplete="name"
+                        value="{{ form_data.nombre_completo if form_data else '' }}"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label for="email" class="block text-slate-300 text-sm font-medium mb-2">Correo Electrónico</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="developer@sicc.com"
+                        required
+                        autocomplete="email"
+                        value="{{ form_data.email if form_data else '' }}"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label for="username" class="block text-slate-300 text-sm font-medium mb-2">Nombre de Usuario</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Ej: jperez"
+                        required
+                        autocomplete="username"
+                        minlength="3"
+                        maxlength="50"
+                        pattern="[a-zA-Z0-9_]+"
+                        title="Solo letras, números y guión bajo"
+                        value="{{ form_data.username if form_data else '' }}"
+                    >
+                    <p class="text-slate-500 text-[11px] mt-1">Solo letras, números y guión bajo (_)</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="block text-slate-300 text-sm font-medium mb-2">Contraseña</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Mínimo 6 caracteres"
+                        required
+                        autocomplete="new-password"
+                        minlength="6"
+                        oninput="checkPasswordStrength(this.value)"
+                    >
+                    <div class="mt-2 flex gap-1">
+                        <div id="str1" class="password-strength flex-1 bg-slate-700"></div>
+                        <div id="str2" class="password-strength flex-1 bg-slate-700"></div>
+                        <div id="str3" class="password-strength flex-1 bg-slate-700"></div>
+                        <div id="str4" class="password-strength flex-1 bg-slate-700"></div>
+                    </div>
+                    <p id="str-text" class="text-slate-500 text-[11px] mt-1"></p>
+                </div>
+
+                <div class="mb-6">
+                    <label for="confirm_password" class="block text-slate-300 text-sm font-medium mb-2">Confirmar Contraseña</label>
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        class="input-field w-full rounded-lg px-4 py-3 text-white placeholder-slate-500"
+                        placeholder="Repite tu contraseña"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <p id="match-msg" class="text-[11px] mt-1 hidden"></p>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-register w-full text-white font-semibold py-3 rounded-lg text-sm uppercase tracking-wider">
+                    Crear Cuenta Developer
+                </button>
+            </form>
+
+            <!-- Link to login -->
+            <div class="mt-5 text-center">
+                <p class="text-slate-400 text-sm">
+                    ¿Ya tienes una cuenta?
+                    <a href="{{ url_for('mostrar_login') }}" class="link-login font-medium">Iniciar Sesión</a>
+                </p>
+            </div>
+        </div>
+
+        <p class="text-slate-600 text-xs text-center mt-6">&copy; 2025 SICC Proyect - Todos los derechos reservados</p>
+    </div>
+
+    <script>
+        function checkPasswordStrength(password) {
+            const bars = [
+                document.getElementById('str1'),
+                document.getElementById('str2'),
+                document.getElementById('str3'),
+                document.getElementById('str4')
+            ];
+            const text = document.getElementById('str-text');
+
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength++;
+            if (/[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) strength++;
+
+            const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            const labels = ['', 'Débil', 'Regular', 'Buena', 'Fuerte'];
+
+            bars.forEach((bar, i) => {
+                bar.style.background = i < strength ? colors[strength] : '#334155';
+            });
+
+            text.textContent = password.length > 0 ? `Seguridad: ${labels[strength] || 'Muy débil'}` : '';
+            text.style.color = colors[strength] || '#64748b';
+        }
+
+        // Real-time password match check
+        const confirmField = document.getElementById('confirm_password');
+        const passwordField = document.getElementById('password');
+        const matchMsg = document.getElementById('match-msg');
+
+        confirmField.addEventListener('input', function() {
+            if (this.value.length === 0) {
+                matchMsg.classList.add('hidden');
+                return;
+            }
+            matchMsg.classList.remove('hidden');
+            if (this.value === passwordField.value) {
+                matchMsg.textContent = '✓ Las contraseñas coinciden';
+                matchMsg.style.color = '#10b981';
+            } else {
+                matchMsg.textContent = '✗ Las contraseñas no coinciden';
+                matchMsg.style.color = '#ef4444';
+            }
+        });
+
+        // Form validation before submit
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const pass = passwordField.value;
+            const confirm = confirmField.value;
+
+            if (pass !== confirm) {
+                e.preventDefault();
+                matchMsg.classList.remove('hidden');
+                matchMsg.textContent = '✗ Las contraseñas no coinciden';
+                matchMsg.style.color = '#ef4444';
+                confirmField.focus();
+            }
+        });
+    </script>
+</body>
+</html>
