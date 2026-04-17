@@ -82,8 +82,11 @@
     </aside>
 
     <main class="flex-1 p-8">
-        <header class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <header class="bg-white shadow-md rounded-lg p-6 mb-8 flex justify-between items-center">
             <h2 class="text-3xl font-extrabold text-gray-900">{% block page_title %}Página{% endblock %}</h2>
+            <div>
+                {% block header_actions %}{% endblock %}
+            </div>
         </header>
 
         {% if acceso_denegado %}
