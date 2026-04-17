@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import Connection, text
 from typing import Optional
+import csv
+import io
 
 from app.crud import incidentes as crud_incidentes
 from app.crud import categorias as crud_categorias
@@ -263,6 +265,31 @@ async def auditoria_incidentes_sedes(
     query = text("SELECT * FROM vw_Auditoria_Incidentes_Sede")
     result = conn.execute(query).mappings().fetchall()
     return {"data": [dict(row) for row in result]}
+
+
+@router.get("/auditoria/sedes/export_csv", name="exportar_auditoria_sedes_csv")
+async def exportar_auditoria_sedes_csv(
+        conn: Connection = Depends(get_session)
+):
+    query = text("SELECT * FROM vw_Auditoria_Incidentes_Sede")
+    result = conn.execute(query).mappings().fetchall()
+    
+    output = io.StringIO()
+    if not result:
+        return StreamingResponse(iter(["No hay datos."]), media_type="text/plain")
+        
+    writer = csv.DictWriter(output, fieldnames=result[0].keys())
+    writer.writeheader()
+    for row in result:
+        writer.writerow(dict(row))
+        
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reporte_auditoria_sedes.csv"}
+    )
 
 
 @router.post("/detalle/{incidente_id}/cerrar", name="procesar_cerrar_incidente")

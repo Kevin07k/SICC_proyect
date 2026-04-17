@@ -113,4 +113,52 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Datos de Tipo recibidos:", typeof datosTipo, datosTipo);
     }
 
+    // --- GRÁFICA 3: TOP 10 ACTIVOS (Bar Chart) ---
+    try {
+        const etiquetasActivos = [];
+        const valoresActivos = [];
+
+        if (typeof datosTopActivos !== 'undefined' && datosTopActivos.length > 0) {
+            datosTopActivos.forEach(item => {
+                etiquetasActivos.push(item.hostname);
+                valoresActivos.push(item.total_incidentes);
+            });
+        } else {
+            etiquetasActivos.push("Sin datos");
+            valoresActivos.push(0);
+        }
+
+        const ctxTopActivos = document.getElementById('graficaTopActivos');
+
+        if (ctxTopActivos) {
+            new Chart(ctxTopActivos.getContext('2d'), {
+                type: 'bar', // Gráfica de barras
+                data: {
+                    labels: etiquetasActivos,
+                    datasets: [{
+                        label: 'Número de Incidentes',
+                        data: valoresActivos,
+                        backgroundColor: '#8b5cf6', // purple-500
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error al crear gráfica de Top Activos:", e);
+    }
+
 });

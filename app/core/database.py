@@ -24,11 +24,11 @@ encoded_password = urllib.parse.quote_plus(PASSWORD)
 # --- 4. Construir la URL de Conexión ---
 DATABASE_URL = (
     f"mssql+pyodbc://{USER}:{encoded_password}@{HOST}:{PORT}/{DB_NAME}"
-    f"?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+    f"?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
 )
 
 # --- 5. Crear el Motor (Engine) ---
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=True, pool_pre_ping=True)
 
 # --- 6. Crear la Sesión ---
 #SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -12,13 +12,10 @@ HOST = os.getenv("DB_HOST")
 PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 
-encoded_password = urllib.parse.quote_plus(PASSWORD)
-DATABASE_URL = (
-    f"mssql+pyodbc://{USER}:{encoded_password}@{HOST}:{PORT}/{DB_NAME}"
-    f"?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes&Encrypt=no"
-)
+import pyodbc
 
-engine = create_engine(DATABASE_URL).execution_options(isolation_level="AUTOCOMMIT")
+# Build pure pyodbc connection string
+conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={HOST},{PORT};UID={USER};PWD={PASSWORD};TrustServerCertificate=yes;Encrypt=no"
 
 scripts = [
     "01_Estructura_Tablas.sql",
@@ -41,14 +38,21 @@ def run_script(filename):
     # Split by GO statement (case insensitive)
     batches = re.split(r'(?i)^\s*GO\s*$', content, flags=re.MULTILINE)
     
-    with engine.connect() as conn:
+    raw_conn = pyodbc.connect(conn_str, autocommit=True)
+    try:
+        cursor = raw_conn.cursor()
         for batch in batches:
             if batch.strip():
                 try:
-                    conn.execute(text(batch))
+                    cursor.execute(batch)
+                    # Procesar todos los resultados ocultos (PRINTs, counts) para que el script no se aborte
+                    while cursor.nextset():
+                        pass
                 except Exception as e:
                     print(f"Error in {filename} batch: {e}")
                     # Continue with other batches/scripts if possible
+    finally:
+        raw_conn.close()
 
 if __name__ == "__main__":
     for script in scripts:

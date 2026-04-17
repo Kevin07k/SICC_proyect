@@ -26,11 +26,17 @@ async def mostrar_dashboard(
     datos_tipos = crud.get_conteo_incidentes_por_tipo(conn)
     datos_prioridad = crud.get_conteo_incidentes_por_prioridad(conn)
     conteo_criticos = crud.get_conteo_incidentes_criticos(conn)
+    
+    # Obtener datos de las vistas para el dashboard
+    datos_top_activos = conn.execute(text("SELECT * FROM vw_Top_Activos_Atacados")).mappings().fetchall()
+    datos_criticos = conn.execute(text("SELECT * FROM vw_Incidentes_Criticos_Abiertos")).mappings().fetchall()
 
     context.update({
         "datos_tipos": datos_tipos,
         "datos_prioridad": datos_prioridad,
-        "conteo_criticos": conteo_criticos
+        "conteo_criticos": conteo_criticos,
+        "datos_top_activos": [dict(r) for r in datos_top_activos],
+        "datos_criticos": [dict(r) for r in datos_criticos]
     })
     return templates.TemplateResponse("index.html", context)
 

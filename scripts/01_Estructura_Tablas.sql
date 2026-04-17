@@ -3,9 +3,11 @@
 USE master;
 GO
 
-IF EXISTS (SELECT name
-FROM sys.databases
-WHERE name = 'DB_GestionIncidentes')
+IF EXISTS (
+    SELECT name
+    FROM sys.databases
+    WHERE name = 'DB_GestionIncidentes'
+)
 BEGIN
     ALTER DATABASE DB_GestionIncidentes SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE DB_GestionIncidentes;
