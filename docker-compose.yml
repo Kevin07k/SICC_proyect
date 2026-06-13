@@ -1,0 +1,33 @@
+# Orquestación local: BDs (database/) + API (backend/) + UI (frontend/)
+# Uso:
+#   docker compose -f database/docker-compose.yml up -d
+#   cd database && .venv-init/bin/python init_databases.py
+#   docker compose up -d api web
+
+services:
+  api:
+    build: ./backend
+    container_name: sicc-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_ENABLE_DEV_SWITCHER: "true"
+    container_name: sicc-web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_ENABLE_DEV_SWITCHER: "true"
+    depends_on:
+      - api
+    restart: unless-stopped

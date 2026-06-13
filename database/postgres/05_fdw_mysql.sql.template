@@ -1,0 +1,60 @@
+-- FDW mysql_fdw: PostgreSQL central lee operacional de Cochabamba (solo lectura)
+-- Placeholders __MYSQL_FDW_HOST__, __MYSQL_FDW_DB__, __MYSQL_FDW_USER__, __MYSQL_FDW_PASSWORD__
+-- sustituidos por init_databases.py
+
+CREATE EXTENSION IF NOT EXISTS mysql_fdw;
+
+DROP SERVER IF EXISTS mysql_sucursal_cochabamba CASCADE;
+
+CREATE SERVER mysql_sucursal_cochabamba
+    FOREIGN DATA WRAPPER mysql_fdw
+    OPTIONS (
+        host '__MYSQL_FDW_HOST__',
+        port '3306',
+        fetch_size '1000'
+    );
+
+-- sicc_admin: quien ejecuta init_databases.py (IMPORT FOREIGN SCHEMA)
+CREATE USER MAPPING IF NOT EXISTS FOR sicc_admin
+    SERVER mysql_sucursal_cochabamba
+    OPTIONS (
+        username '__MYSQL_FDW_USER__',
+        password '__MYSQL_FDW_PASSWORD__'
+    );
+
+CREATE USER MAPPING IF NOT EXISTS FOR sicc_reportes
+    SERVER mysql_sucursal_cochabamba
+    OPTIONS (
+        username '__MYSQL_FDW_USER__',
+        password '__MYSQL_FDW_PASSWORD__'
+    );
+
+-- sicc_api: la API consulta reportes vía FDW (solo lectura en MySQL)
+CREATE USER MAPPING IF NOT EXISTS FOR sicc_api
+    SERVER mysql_sucursal_cochabamba
+    OPTIONS (
+        username '__MYSQL_FDW_USER__',
+        password '__MYSQL_FDW_PASSWORD__'
+    );
+
+CREATE SCHEMA IF NOT EXISTS sucursal_cochabamba;
+
+IMPORT FOREIGN SCHEMA __MYSQL_FDW_DB__
+    LIMIT TO (
+        "Activos",
+        "Incidentes",
+        "Incidentes_Activos",
+        "Bitacora_Investigacion"
+    )
+    FROM SERVER mysql_sucursal_cochabamba
+    INTO sucursal_cochabamba;
+
+GRANT USAGE ON SCHEMA sucursal_cochabamba TO sicc_reportes, sicc_api;
+GRANT SELECT ON ALL TABLES IN SCHEMA sucursal_cochabamba TO sicc_reportes, sicc_api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA sucursal_cochabamba
+    GRANT SELECT ON TABLES TO sicc_reportes, sicc_api;
+
+GRANT USAGE ON FOREIGN SERVER mysql_sucursal_cochabamba TO sicc_reportes, sicc_api;
+
+-- sicc_api: solo lectura FDW (sin INSERT/UPDATE/DELETE en tablas foráneas)
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA sucursal_cochabamba FROM sicc_api;

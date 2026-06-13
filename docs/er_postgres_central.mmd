@@ -1,0 +1,162 @@
+%% Diagrama Entidad-Relación — PostgreSQL sede central (Santa Cruz)
+%% Vista lógica del nodo sicc_central. Misma estructura relacional que MySQL;
+%% los datos operacionales locales solo se insertan para id_sede = 1.
+%% Convenciones: ||--|| uno a uno, ||--o{ uno a muchos, }o--o{ muchos a muchos
+
+erDiagram
+    cat_Sedes ||--o{ Usuarios : pertenece
+    Roles ||--o{ Usuarios : asigna
+    Usuarios ||--o{ Sesiones : abre
+    Roles ||--o{ Roles_Permisos : incluye
+    Permisos ||--o{ Roles_Permisos : otorga
+    cat_Sedes ||--o{ Activos : aloja
+    cat_Tipos_Incidente ||--o{ Incidentes : clasifica
+    cat_Prioridades ||--o{ Incidentes : prioriza
+    cat_Estados ||--o{ Incidentes : estado
+    Usuarios ||--o{ Incidentes : asignado
+    cat_Sedes ||--o{ Incidentes : registra
+    Incidentes ||--o{ Bitacora_Investigacion : bitacora
+    Usuarios ||--o{ Bitacora_Investigacion : autor
+    Incidentes ||--o{ Incidentes_Activos : vincula
+    Activos ||--o{ Incidentes_Activos : afectado
+
+    cat_Sedes {
+        int id_sede PK
+        varchar nombre_sede UK
+        varchar nivel_criticidad
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    Roles {
+        int id_rol PK
+        varchar nombre UK
+        varchar descripcion
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Permisos {
+        int id_permiso PK
+        varchar nombre
+        varchar codigo UK
+        varchar descripcion
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Roles_Permisos {
+        int id_rol PK_FK
+        int id_permiso PK_FK
+    }
+
+    cat_Estados {
+        int id_estado PK
+        varchar nombre UK
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    cat_Prioridades {
+        int id_prioridad PK
+        varchar nivel UK
+        int valor_orden
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    cat_Tipos_Incidente {
+        int id_tipo PK
+        varchar nombre UK
+        varchar descripcion
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    Usuarios {
+        uuid uuid PK
+        varchar email UK
+        varchar password_hash
+        varchar nombre_completo
+        int id_sede FK
+        int id_rol FK
+        bool activo
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Sesiones {
+        varchar token PK
+        uuid usuario_uuid FK
+        timestamp created_at
+        timestamp expires_at
+    }
+
+    sync_control {
+        int id PK
+        timestamp last_sync
+        varchar nodo_origen
+    }
+
+    Activos {
+        uuid uuid PK
+        varchar hostname
+        varchar direccion_ip
+        varchar tipo_activo
+        varchar propietario
+        int id_sede FK
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    Incidentes {
+        uuid uuid PK
+        varchar titulo
+        text descripcion
+        int id_tipo FK
+        int id_prioridad FK
+        int id_estado FK
+        uuid id_usuario_asignado FK
+        int id_sede FK
+        timestamp fecha_cierre
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    Incidentes_Activos {
+        uuid uuid PK
+        uuid id_incidente FK
+        uuid id_activo FK
+        varchar notas
+        varchar tipo_activo_registrado
+        varchar sede_registrada
+        varchar hostname_registrado
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    Bitacora_Investigacion {
+        uuid uuid PK
+        uuid id_incidente FK
+        uuid id_usuario FK
+        text comentario
+        timestamp created_at
+        timestamp updated_at
+        bool eliminado
+    }
+
+    reportes_cache {
+        int id PK
+        varchar clave UK
+        jsonb payload
+        timestamp generated_at
+        timestamp expires_at
+        int duration_ms
+        text_array source_nodes
+    }

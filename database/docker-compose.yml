@@ -1,0 +1,93 @@
+services:
+  postgres-central:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: sicc-postgres-central:16-mysql-fdw
+    container_name: sicc-postgres-central
+    environment:
+      POSTGRES_DB: sicc_central
+      POSTGRES_USER: sicc_admin
+      POSTGRES_PASSWORD: sicc_pg_pass_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - sicc-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sicc_admin -d sicc_central"]
+      interval: 10s
+      retries: 5
+    depends_on:
+      mysql-secundaria:
+        condition: service_healthy
+
+  mysql-secundaria:
+    image: mysql:8.0
+    container_name: sicc-mysql-secundaria
+    command:
+      - --log-bin-trust-function-creators=1
+    environment:
+      MYSQL_ROOT_PASSWORD: sicc_root_pass_2024
+      MYSQL_DATABASE: sicc_cochabamba
+      MYSQL_USER: sicc_admin
+      MYSQL_PASSWORD: sicc_mysql_pass_2024
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - mysqldata:/var/lib/mysql
+    networks:
+      - sicc-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+
+  mongo-santa-cruz:
+    image: mongo:7.0.14
+    container_name: sicc-mongo-santa-cruz
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sicc_mongo_admin
+      MONGO_INITDB_ROOT_PASSWORD: sicc_mongo_pass_2024
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo/santa_cruz:/docker-entrypoint-initdb.d:ro
+      - mongodata_sc:/data/db
+    networks:
+      - sicc-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+
+  mongo-cochabamba:
+    image: mongo:7.0.14
+    container_name: sicc-mongo-cochabamba
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: sicc_mongo_admin
+      MONGO_INITDB_ROOT_PASSWORD: sicc_mongo_pass_2024
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongo/cochabamba:/docker-entrypoint-initdb.d:ro
+      - mongodata_cb:/data/db
+    networks:
+      - sicc-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 5
+
+volumes:
+  pgdata:
+  mysqldata:
+  mongodata_sc:
+  mongodata_cb:
+
+networks:
+  sicc-net:
+    driver: bridge

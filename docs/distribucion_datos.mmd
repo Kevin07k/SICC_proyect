@@ -1,0 +1,97 @@
+flowchart TB
+
+    subgraph SISTEMA["Sistema SICC - Mapa de Datos por Sede"]
+        direction TB
+
+        API["FastAPI Gateway"]
+        SYNC["POST /sync/manual<br/>GET /sync/status"]
+        AUTH["POST /auth/login<br/>POST /auth/logout"]
+        TRANS["POST /activos/uuid/transferir"]
+        MONGO_API["CRUD documentos NoSQL<br/>evidencias, timeline, telemetria"]
+
+        API --> AUTH
+        API --> SYNC
+        API --> TRANS
+        API --> MONGO_API
+
+        subgraph REP["Datos sincronizados LWW - mismas tablas en PostgreSQL y MySQL"]
+            direction LR
+            T_USERS[Usuarios]
+            T_SES[Sesiones]
+            T_SYNC[sync_control]
+            T_ROLES[Roles y Permisos]
+            T_CAT[Catalogos]
+        end
+
+        subgraph PG_SEDE["PostgreSQL Santa Cruz - SQL local"]
+            direction LR
+            PG_INC[Incidentes]
+            PG_ACT[Activos]
+            PG_IA[Incidentes_Activos]
+            PG_BIT[Bitacora]
+        end
+
+        subgraph MONGO_SC["MongoDB Santa Cruz - NoSQL local"]
+            direction LR
+            SC_EVID[evidencias_incidente]
+            SC_TL[timeline_eventos]
+            SC_TEL[telemetria_activo]
+        end
+
+        subgraph MY_SEDE["MySQL Cochabamba - SQL local"]
+            direction LR
+            MY_INC[Incidentes]
+            MY_ACT[Activos]
+            MY_IA[Incidentes_Activos]
+            MY_BIT[Bitacora]
+        end
+
+        subgraph MONGO_CB["MongoDB Cochabamba - NoSQL local"]
+            direction LR
+            CB_EVID[evidencias_incidente]
+            CB_TL[timeline_eventos]
+            CB_TEL[telemetria_activo]
+        end
+
+        API -->|CRUD locales SQL| PG_SEDE
+        API -->|CRUD locales SQL| MY_SEDE
+        MONGO_API -->|CRUD locales NoSQL| MONGO_SC
+        MONGO_API -->|CRUD locales NoSQL| MONGO_CB
+        API -.->|/sync/manual solo metadata SQL| REP
+
+        PG_INC -.->|incidente_uuid| SC_EVID
+        PG_INC -.->|incidente_uuid| SC_TL
+        PG_ACT -.->|activo_uuid| SC_TEL
+
+        MY_INC -.->|incidente_uuid| CB_EVID
+        MY_INC -.->|incidente_uuid| CB_TL
+        MY_ACT -.->|activo_uuid| CB_TEL
+
+        T_USERS -.-> PG_SEDE
+        T_USERS -.-> MY_SEDE
+        T_SES -.-> PG_SEDE
+        T_SES -.-> MY_SEDE
+        T_SYNC -.-> PG_SEDE
+        T_SYNC -.-> MY_SEDE
+        T_ROLES -.-> PG_SEDE
+        T_ROLES -.-> MY_SEDE
+        T_CAT -.-> PG_SEDE
+        T_CAT -.-> MY_SEDE
+
+        REP <-->|Sync LWW solo metadata SQL| PG_SEDE
+        REP <-->|Sync LWW solo metadata SQL| MY_SEDE
+
+        PG_SEDE -.->|FDW solo lectura| MY_SEDE
+
+        TRANS -.->|desactiva origen y crea en destino SQL| PG_SEDE
+        TRANS -.->|desactiva origen y crea en destino SQL| MY_SEDE
+
+    end
+
+    subgraph LEGEND["Leyenda"]
+        direction LR
+        L1["Continua: operaciones locales por sede"]
+        L2["Gruesa en REP: sync LWW solo metadata SQL"]
+        L3["Punteada: replica SQL, FDW, traslado activo o uuid SQL-Mongo"]
+        L4["Mongo: no replica entre sedes"]
+    end

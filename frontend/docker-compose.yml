@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_ENABLE_DEV_SWITCHER: "true"
+    container_name: sicc-web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_ENABLE_DEV_SWITCHER: "true"
+    restart: unless-stopped

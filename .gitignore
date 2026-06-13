@@ -1,0 +1,58 @@
+### SICC — .gitignore
+
+# --- Secrets / local env ---
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env.local
+database/.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Virtual envs
+.venv/
+.venv-*/
+backend/.venv/
+database/.venv-init/
+
+# --- Node / Next ---
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- OS / editors / IDE local (no subir al repo) ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/
+.opencode/
+opencode.json
+
+# --- Project docs local (export PDF, no versionar) ---
+doc.md
+doc.pdf
+
+# --- Docker / local data ---
+**/*.pid
+database/.fdw_rendered.sql
+
+# --- Generated DB artifacts (if any) ---
+*.sqlite

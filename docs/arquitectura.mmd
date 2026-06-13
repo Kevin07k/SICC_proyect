@@ -1,0 +1,98 @@
+flowchart TB
+
+    CLIENT["Cliente / Frontend"]
+    API["FastAPI Gateway"]
+
+    CLIENT -->|Login / CRUD| API
+
+    subgraph REP["Metadata replicada - sync LWW en ambas BDs SQL"]
+        direction LR
+        R_USERS[Usuarios]
+        R_SES[Sesiones]
+        R_CAT[Catalogos]
+        R_SYNC[sync_control]
+    end
+
+    subgraph CENTRAL["PostgreSQL - datos locales Santa Cruz"]
+        PG[("PostgreSQL")]
+        PG_INC[Incidentes]
+        PG_ACT[Activos]
+        PG_BIT[Bitacora]
+        REPORTS[Reportes y Analytics]
+
+        PG --> PG_INC
+        PG --> PG_ACT
+        PG --> PG_BIT
+        PG --> REPORTS
+    end
+
+    subgraph MONGO_SC["MongoDB - documentos locales Santa Cruz"]
+        MONGO_PG[("MongoDB")]
+        PG_EVID[Evidencias incidente]
+        PG_TL[Timeline eventos]
+        PG_TEL[Telemetria activo]
+
+        MONGO_PG --> PG_EVID
+        MONGO_PG --> PG_TL
+        MONGO_PG --> PG_TEL
+    end
+
+    subgraph SECONDARY["MySQL - datos locales Cochabamba"]
+        MYSQL[("MySQL")]
+        MY_INC[Incidentes]
+        MY_ACT[Activos]
+        MY_BIT[Bitacora]
+
+        MYSQL --> MY_INC
+        MYSQL --> MY_ACT
+        MYSQL --> MY_BIT
+    end
+
+    subgraph MONGO_CB["MongoDB - documentos locales Cochabamba"]
+        MONGO_MY[("MongoDB")]
+        MY_EVID[Evidencias incidente]
+        MY_TL[Timeline eventos]
+        MY_TEL[Telemetria activo]
+
+        MONGO_MY --> MY_EVID
+        MONGO_MY --> MY_TL
+        MONGO_MY --> MY_TEL
+    end
+
+    API -->|operaciones locales SQL| PG
+    API -->|operaciones locales SQL| MYSQL
+    API -->|documentos locales NoSQL| MONGO_PG
+    API -->|documentos locales NoSQL| MONGO_MY
+    API -.->|/sync/manual| REP
+    API -->|/activos/uuid/transferir| PG
+    API -->|/activos/uuid/transferir| MYSQL
+
+    PG_INC -.->|incidente_uuid| PG_EVID
+    PG_INC -.->|incidente_uuid| PG_TL
+    PG_ACT -.->|activo_uuid| PG_TEL
+
+    MY_INC -.->|incidente_uuid| MY_EVID
+    MY_INC -.->|incidente_uuid| MY_TL
+    MY_ACT -.->|activo_uuid| MY_TEL
+
+    R_USERS -.-> PG
+    R_USERS -.-> MYSQL
+    R_SES -.-> PG
+    R_SES -.-> MYSQL
+    R_CAT -.-> PG
+    R_CAT -.-> MYSQL
+    R_SYNC -.-> PG
+    R_SYNC -.-> MYSQL
+
+    REP <-->|Sync LWW solo metadata SQL| PG
+    REP <-->|Sync LWW solo metadata SQL| MYSQL
+
+    PG -.->|FDW consultas globales| MYSQL
+
+    subgraph LEGEND["Leyenda"]
+        direction LR
+        L1["Continua: datos locales de sede"]
+        L2["Punteada: metadata replicada, FDW o referencia uuid SQL-Mongo"]
+        L3["Traslado activo: desactiva origen SQL, crea en destino mismo UUID"]
+        L4["Mongo: sin sync entre sedes; complementa SQL"]
+    end

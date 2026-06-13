@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --bg-app: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.8);
+  --primary: #3b82f6;
+  --accent: #06b6d4;
+}
+
+body {
+  background: var(--bg-app);
+  color: #f8fafc;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+  }
+  50% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.6));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.auth-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.dev-panel-bg {
+  background: linear-gradient(160deg, #1c1917 0%, #292524 40%, #0f172a 100%);
+}

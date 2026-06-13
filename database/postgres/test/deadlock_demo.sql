@@ -1,0 +1,32 @@
+-- =============================================================================
+-- DEADLOCK — PostgreSQL (dos sesiones psql)
+-- Requiere demo: apply_demo_seed.py
+-- Activos fijos Santa Cruz:
+--   A = b1000001-0001-4000-8000-000000000001
+--   B = b1000001-0001-4000-8000-000000000002
+-- =============================================================================
+
+-- ---------- SESIÓN A (terminal 1) ----------
+-- BEGIN;
+-- UPDATE Activos SET propietario = 'Sesion A paso 1'
+-- WHERE uuid = 'b1000001-0001-4000-8000-000000000001';
+-- (esperar: ejecutar paso 1 de sesión B)
+-- UPDATE Activos SET propietario = 'Sesion A paso 2'
+-- WHERE uuid = 'b1000001-0001-4000-8000-000000000002';
+-- (una sesión recibirá: ERROR: deadlock detected)
+-- ROLLBACK;
+
+-- ---------- SESIÓN B (terminal 2) ----------
+-- BEGIN;
+-- UPDATE Activos SET propietario = 'Sesion B paso 1'
+-- WHERE uuid = 'b1000001-0001-4000-8000-000000000002';
+-- UPDATE Activos SET propietario = 'Sesion B paso 2'
+-- WHERE uuid = 'b1000001-0001-4000-8000-000000000001';
+-- ROLLBACK;
+
+-- Restaurar demo tras prueba:
+-- UPDATE Activos SET propietario = 'TI Central'
+-- WHERE uuid IN (
+--   'b1000001-0001-4000-8000-000000000001',
+--   'b1000001-0001-4000-8000-000000000002'
+-- );

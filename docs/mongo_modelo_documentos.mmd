@@ -1,0 +1,77 @@
+%% Modelo de documentos MongoDB — una instancia por sede (Santa Cruz / Cochabamba)
+%% No es E-R relacional: referencias lógicas por UUID hacia entidades SQL locales.
+%% FastAPI valida existencia en PG o MySQL antes de insertar en Mongo de la misma sede.
+
+flowchart TB
+
+    subgraph SQL_SC["PostgreSQL Santa Cruz - transaccional"]
+        INC_SC[Incidentes uuid]
+        ACT_SC[Activos uuid]
+        BIT_SC[Bitacora_Investigacion]
+    end
+
+    subgraph MONGO_SC["MongoDB Santa Cruz - documentos locales"]
+        direction TB
+        DB_SC[("sicc_sc")]
+        C1_SC[evidencias_incidente]
+        C2_SC[timeline_eventos]
+        C3_SC[telemetria_activo]
+
+        DB_SC --> C1_SC
+        DB_SC --> C2_SC
+        DB_SC --> C3_SC
+    end
+
+    subgraph SQL_CB["MySQL Cochabamba - transaccional"]
+        INC_CB[Incidentes uuid]
+        ACT_CB[Activos uuid]
+        BIT_CB[Bitacora_Investigacion]
+    end
+
+    subgraph MONGO_CB["MongoDB Cochabamba - documentos locales"]
+        direction TB
+        DB_CB[("sicc_cb")]
+        C1_CB[evidencias_incidente]
+        C2_CB[timeline_eventos]
+        C3_CB[telemetria_activo]
+
+        DB_CB --> C1_CB
+        DB_CB --> C2_CB
+        DB_CB --> C3_CB
+    end
+
+    API["FastAPI - routing por sede"]
+
+    INC_SC -.->|incidente_uuid| C1_SC
+    INC_SC -.->|incidente_uuid| C2_SC
+    ACT_SC -.->|activo_uuid| C3_SC
+    BIT_SC -.->|resumen en SQL, detalle en Mongo| C2_SC
+
+    INC_CB -.->|incidente_uuid| C1_CB
+    INC_CB -.->|incidente_uuid| C2_CB
+    ACT_CB -.->|activo_uuid| C3_CB
+    BIT_CB -.->|resumen en SQL, detalle en Mongo| C2_CB
+
+    API -->|CRUD SQL| SQL_SC
+    API -->|CRUD SQL| SQL_CB
+    API -->|CRUD documentos| MONGO_SC
+    API -->|CRUD documentos| MONGO_CB
+
+    subgraph DOCS["Estructura de documento - ejemplo evidencias_incidente"]
+        direction TB
+        D1["incidente_uuid: string - FK logica"]
+        D2["tipo: ioc | log | captura | adjunto"]
+        D3["metadata: objeto flexible"]
+        D4["iocs: array de subdocumentos hash, ip, dominio"]
+        D5["created_at, autor_uuid, eliminado"]
+    end
+
+    C1_SC -.-> DOCS
+
+    subgraph REGLAS["Reglas de integracion"]
+        direction TB
+        R1["Sin replica LWW entre Mongo de sedes"]
+        R2["RN-02: documentos viven en la sede del incidente"]
+        R3["Traslado activo: telemetria historica queda en Mongo origen"]
+        R4["Consultas globales: agregacion via FastAPI, no FDW"]
+    end
