@@ -37,7 +37,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# --- OS / editors / IDE local (no subir al repo) ---
 .DS_Store
 Thumbs.db
 .idea/
@@ -45,8 +44,6 @@ Thumbs.db
 .cursor/
 .opencode/
 opencode.json
-
-# --- Project docs local (export PDF, no versionar) ---
 doc.md
 doc.pdf
 
